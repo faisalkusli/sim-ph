@@ -1,0 +1,89 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Auth::routes(['register' => false]);;
+
+use App\Http\Controllers\SuratMasukController;
+use App\Http\Controllers\DisposisiController;
+use App\Http\Controllers\BackupController;
+use App\Http\Controllers\InboxController;
+use App\Http\Controllers\PencarianController;
+use App\Http\Controllers\PengambilanProdukController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+    Route::resource('surat-masuk', SuratMasukController::class);
+    Route::get('/surat-masuk/{id}/disposisi', [\App\Http\Controllers\DisposisiController::class, 'show'])->name('disposisi.show');
+    Route::post('/surat-masuk/{id}/disposisi', [\App\Http\Controllers\DisposisiController::class, 'store'])->name('disposisi.store');
+    Route::get('/surat-masuk/{id}/cetak', [App\Http\Controllers\SuratMasukController::class, 'cetak'])->name('surat-masuk.cetak');
+    Route::get('/surat-keluar', [App\Http\Controllers\SuratKeluarController::class, 'index'])->name('surat-keluar.index');
+    Route::get('/surat-keluar/create', [App\Http\Controllers\SuratKeluarController::class, 'create'])->name('surat-keluar.create');
+    Route::post('/surat-keluar', [App\Http\Controllers\SuratKeluarController::class, 'store'])->name('surat-keluar.store');
+    Route::delete('/surat-keluar/{id}', [App\Http\Controllers\SuratKeluarController::class, 'destroy'])->name('surat-keluar.destroy');
+    Route::post('/surat-masuk/{id}/status', [App\Http\Controllers\SuratMasukController::class, 'updateStatus'])->name('surat-masuk.status');
+    Route::get('/inbox', [App\Http\Controllers\SuratMasukController::class, 'inbox'])->name('inbox.index');
+    Route::get('/laporan', [App\Http\Controllers\LaporanController::class, 'index'])->name('laporan.index');
+    Route::post('/laporan/cetak', [App\Http\Controllers\LaporanController::class, 'cetak'])->name('laporan.cetak');
+    Route::resource('users', \App\Http\Controllers\UserController::class);
+    Route::get('/surat-masuk/{id}/monitor', [App\Http\Controllers\SuratMasukController::class, 'monitor'])->name('surat-masuk.monitor');
+    Route::post('/surat-masuk/{id}/disposisi', [App\Http\Controllers\SuratMasukController::class, 'storeDisposisi'])->name('surat-masuk.disposisi.store');
+    Route::delete('/disposisi/{id}', [App\Http\Controllers\SuratMasukController::class, 'hapusDisposisi'])->name('disposisi.destroy');
+    Route::get('/monitoring-disposisi', [App\Http\Controllers\SuratMasukController::class, 'rekapDisposisi'])->name('disposisi.rekap');
+    Route::get('/system/backup-db', [BackupController::class, 'downloadBackup'])->name('backup.db');
+    Route::post('/system/restore-db', [App\Http\Controllers\BackupController::class, 'restoreDatabase'])->name('restore.db');
+    Route::get('/pencarian', [App\Http\Controllers\PencarianController::class, 'index'])->name('pencarian.index');
+    Route::post('/disposisi/kirim', [App\Http\Controllers\DisposisiController::class, 'store'])->name('disposisi.store');
+    Route::post('/disposisi/{id}/terima', [App\Http\Controllers\DisposisiController::class, 'terima'])->name('disposisi.terima');
+    Route::post('/disposisi/{id}/selesai', [App\Http\Controllers\DisposisiController::class, 'selesai'])->name('disposisi.selesai');
+    Route::get('/inbox', [InboxController::class, 'index'])->name('inbox.index');
+    Route::get('/disposisi/monitoring', [App\Http\Controllers\DisposisiController::class, 'monitoring'])
+    ->name('disposisi.monitoring');
+    Route::post('/surat-masuk/{id}/verifikasi', [App\Http\Controllers\SuratMasukController::class, 'verifikasi'])->name('surat-masuk.verifikasi');
+    Route::get('/rekap-disposisi', [App\Http\Controllers\SuratMasukController::class, 'rekapDisposisi'])
+     ->name('rekap.disposisi');
+    Route::get('/surat-masuk/monitor/{id}', [SuratMasukController::class, 'monitor'])->name('surat-masuk.monitor');
+    Route::get('/disposisi/monitoring', [SuratMasukController::class, 'rekapDisposisi'])->name('disposisi.monitoring');
+    Route::get('surat-masuk/check-status', [App\Http\Controllers\SuratMasukController::class, 'checkStatus'])->name('surat-masuk.check-status');
+    Route::resource('surat-masuk', App\Http\Controllers\SuratMasukController::class);
+    Route::get('/inbox', [DisposisiController::class, 'inbox'])->name('disposisi.inbox');
+    Route::patch('/disposisi/{id}/terima', [DisposisiController::class, 'terima'])->name('disposisi.terima');
+    Route::patch('/disposisi/{id}/selesai', [DisposisiController::class, 'selesai'])->name('disposisi.selesai');
+    Route::get('/pencarian', [PencarianController::class, 'index'])->name('pencarian.index');
+    Route::get('/inbox', [SuratMasukController::class, 'inbox'])->name('inbox');
+    Route::get('/inbox', [DisposisiController::class, 'inbox'])->name('inbox');
+    Route::post('/disposisi/store', [DisposisiController::class, 'store'])->name('disposisi.store');
+    Route::patch('/disposisi/{id}/reply', [DisposisiController::class, 'reply'])->name('disposisi.reply');
+    Route::patch('/disposisi/{id}/complete', [DisposisiController::class, 'complete'])->name('disposisi.complete');
+    Route::patch('/disposisi/{id}/approve', [DisposisiController::class, 'approve'])->name('disposisi.approve');
+    Route::patch('/disposisi/{id}/reject', [DisposisiController::class, 'reject'])->name('disposisi.reject');
+    Route::get('/disposisi/monitoring', [DisposisiController::class, 'monitoring'])->name('disposisi.monitoring');
+    Route::patch('/surat-masuk/{id}/naik-bupati', [SuratMasukController::class, 'naikBupati'])->name('surat.naik-bupati');
+    Route::patch('/surat-masuk/{id}/turun-bupati', [SuratMasukController::class, 'turunBupati'])->name('surat.turun-bupati');
+    Route::get('/surat-masuk/{id}/cetak-disposisi', [SuratMasukController::class, 'cetakDisposisi'])->name('surat.cetak');
+    Route::get('/system/backup', [BackupController::class, 'index'])->name('backup.index');
+    Route::get('/system/backup/process', [BackupController::class, 'backup'])->name('backup.process');
+    Route::post('/system/backup/restore', [BackupController::class, 'restore'])->name('backup.restore');
+    Route::resource('pengambilan', PengambilanProdukController::class);
+    Route::get('pengambilan/{id}/cetak', [App\Http\Controllers\PengambilanProdukController::class, 'cetak'])->name('pengambilan.cetak');
+    Route::get('surat-masuk/{id}/cetak', [App\Http\Controllers\SuratMasukController::class, 'cetak'])->name('surat-masuk.cetak_penerima');
+    
+});
+    
+
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
