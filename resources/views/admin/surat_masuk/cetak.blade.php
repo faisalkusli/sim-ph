@@ -83,11 +83,11 @@
                     <tr>
                         <td style="padding: 8px 0; border-bottom: 1px dashed #999; vertical-align: top;">
                             <div style="font-weight: bold; margin-bottom: 4px;">
-                                <span style="color: #333;">Tahap {{ $index + 1 }}:</span> 
-                                {{ $d->pengirim->name ?? 'Admin' }} 
-                                </span>
-                                {{ $d->penerima->name ?? '-' }}
-                                </span>
+                                <span style="color: #333;">Tahap {{ $index + 1 }}:</span>
+                                <span style="color: #555; font-weight: normal;">dari</span>
+                                <span style="color: #222;">{{ $d->pengirim->name ?? '-' }}</span>
+                                <span style="color: #555; font-weight: normal;">diteruskan kepada</span>
+                                <span style="color: #1a56db;">{{ $d->penerima->name ?? '-' }}</span>
                             </div>
 
                             <div style="font-size: 11px; color: #555; margin-bottom: 4px;">
