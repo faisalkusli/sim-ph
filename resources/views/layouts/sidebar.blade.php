@@ -131,9 +131,6 @@
     {!! navLink(route('inbox'), 'bi bi-inbox-fill', $inboxLabelStaf,
         request()->is('inbox*')) !!}
 
-    {!! navLink(route('inbox'), 'bi bi-inbox-fill', 'Inbox',
-        request()->is('inbox*')) !!}
-
 
 {{-- ================================================================ --}}
 {{-- ADMIN: Semua fitur termasuk Administrasi                         --}}
