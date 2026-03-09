@@ -220,12 +220,63 @@
                             class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
                 </div>
                 <div class="p-5 space-y-4">
+
+                    {{-- Upload File dengan Live Preview --}}
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">File Hasil Kerja <span class="text-slate-400 font-normal">(Opsional)</span></label>
-                        <input type="file" name="file_hasil" accept=".pdf,.doc,.docx,.jpg,.png"
-                               class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5">
-                        <p class="text-xs text-slate-400 mt-1">PDF/Word/Gambar</p>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                            File Hasil Kerja
+                            <span class="text-slate-400 font-normal">(PDF / Word / Gambar &mdash; maks 5MB)</span>
+                        </label>
+
+                        {{-- Drop zone --}}
+                        <label for="fileInput{{ $d->id }}"
+                               id="dropZone{{ $d->id }}"
+                               class="flex flex-col items-center justify-center gap-2 w-full border-2 border-dashed border-slate-300 rounded-xl p-5 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group">
+                            <i class="fas fa-cloud-upload-alt text-3xl text-slate-300 group-hover:text-blue-400 transition-colors" id="dropIcon{{ $d->id }}"></i>
+                            <span class="text-sm text-slate-400 group-hover:text-blue-500" id="dropText{{ $d->id }}">Klik atau seret file ke sini</span>
+                            <span class="text-xs text-slate-300">.pdf &nbsp;.doc &nbsp;.docx &nbsp;.jpg &nbsp;.png</span>
+                            <input type="file" id="fileInput{{ $d->id }}" name="file_hasil"
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                   class="hidden"
+                                   onchange="handleFilePreview(this, '{{ $d->id }}')"
+                            >
+                        </label>
+
+                        {{-- Live Preview Area --}}
+                        <div id="previewArea{{ $d->id }}" class="hidden mt-3">
+                            {{-- Preview Gambar --}}
+                            <div id="previewImg{{ $d->id }}" class="hidden">
+                                <img id="previewImgEl{{ $d->id }}" src="" alt="Preview"
+                                     class="rounded-xl max-h-48 mx-auto border border-slate-200 shadow-sm">
+                            </div>
+                            {{-- Preview PDF --}}
+                            <div id="previewPdf{{ $d->id }}" class="hidden">
+                                <iframe id="previewPdfEl{{ $d->id }}" src="" class="w-full h-48 rounded-xl border border-slate-200"></iframe>
+                            </div>
+                            {{-- Preview Word / File lain --}}
+                            <div id="previewDoc{{ $d->id }}" class="hidden">
+                                <div class="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                                    <i class="fas fa-file-word text-2xl text-blue-600"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-blue-800" id="previewDocName{{ $d->id }}"></p>
+                                        <p class="text-xs text-blue-500" id="previewDocSize{{ $d->id }}"></p>
+                                    </div>
+                                    <button type="button" onclick="clearFile('{{ $d->id }}')"
+                                            class="ml-auto text-slate-400 hover:text-red-500 transition-colors" title="Hapus">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            {{-- Info hapus file --}}
+                            <div id="previewOtherActions{{ $d->id }}" class="hidden mt-2 text-right">
+                                <button type="button" onclick="clearFile('{{ $d->id }}')"
+                                        class="text-xs text-red-500 hover:underline">
+                                    <i class="fas fa-trash-alt"></i> Hapus pilihan
+                                </button>
+                            </div>
+                        </div>
                     </div>
+
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5">Catatan Pengerjaan <span class="text-red-500">*</span></label>
                         <textarea name="catatan_staff" rows="3" required
@@ -473,3 +524,86 @@
 
 @endforeach
 @endsection
+
+@push('scripts')
+<script>
+function handleFilePreview(input, id) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const previewArea  = document.getElementById('previewArea'  + id);
+    const previewImg   = document.getElementById('previewImg'   + id);
+    const previewPdf   = document.getElementById('previewPdf'   + id);
+    const previewDoc   = document.getElementById('previewDoc'   + id);
+    const previewOther = document.getElementById('previewOtherActions' + id);
+    const dropIcon     = document.getElementById('dropIcon'     + id);
+    const dropText     = document.getElementById('dropText'     + id);
+
+    // Reset semua preview
+    [previewImg, previewPdf, previewDoc, previewOther].forEach(el => el.classList.add('hidden'));
+    previewArea.classList.remove('hidden');
+
+    const ext  = file.name.split('.').pop().toLowerCase();
+    const url  = URL.createObjectURL(file);
+    const size = (file.size / 1024) < 1024
+        ? (file.size / 1024).toFixed(1) + ' KB'
+        : (file.size / 1024 / 1024).toFixed(2) + ' MB';
+
+    dropIcon.className = 'fas fa-check-circle text-3xl text-green-500';
+    dropText.textContent = file.name;
+    dropText.className = 'text-sm font-semibold text-green-700 truncate max-w-xs';
+
+    if (['jpg','jpeg','png','gif','webp'].includes(ext)) {
+        document.getElementById('previewImgEl' + id).src = url;
+        previewImg.classList.remove('hidden');
+        previewOther.classList.remove('hidden');
+    } else if (ext === 'pdf') {
+        document.getElementById('previewPdfEl' + id).src = url;
+        previewPdf.classList.remove('hidden');
+        previewOther.classList.remove('hidden');
+    } else if (['doc','docx'].includes(ext)) {
+        document.getElementById('previewDocName' + id).textContent = file.name;
+        document.getElementById('previewDocSize' + id).textContent = size;
+        previewDoc.classList.remove('hidden');
+    }
+}
+
+function clearFile(id) {
+    const input = document.getElementById('fileInput' + id);
+    input.value = '';
+
+    const previewArea  = document.getElementById('previewArea'  + id);
+    const previewImg   = document.getElementById('previewImg'   + id);
+    const previewPdf   = document.getElementById('previewPdf'   + id);
+    const previewDoc   = document.getElementById('previewDoc'   + id);
+    const previewOther = document.getElementById('previewOtherActions' + id);
+    const dropIcon     = document.getElementById('dropIcon'     + id);
+    const dropText     = document.getElementById('dropText'     + id);
+
+    [previewImg, previewPdf, previewDoc, previewOther, previewArea].forEach(el => el.classList.add('hidden'));
+    dropIcon.className = 'fas fa-cloud-upload-alt text-3xl text-slate-300 group-hover:text-blue-400 transition-colors';
+    dropText.textContent = 'Klik atau seret file ke sini';
+    dropText.className = 'text-sm text-slate-400 group-hover:text-blue-500';
+}
+
+// Drag & drop support
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[id^="dropZone"]').forEach(zone => {
+        const id = zone.id.replace('dropZone','');
+        zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('border-blue-400','bg-blue-50'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('border-blue-400','bg-blue-50'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault();
+            zone.classList.remove('border-blue-400','bg-blue-50');
+            const input = document.getElementById('fileInput' + id);
+            if (e.dataTransfer.files.length) {
+                const dt = new DataTransfer();
+                dt.items.add(e.dataTransfer.files[0]);
+                input.files = dt.files;
+                handleFilePreview(input, id);
+            }
+        });
+    });
+});
+</script>
+@endpush

@@ -348,42 +348,6 @@
 
             @endif
 
-            {{-- Workflow: Upload Hasil Kerja (Staf) --}}
-            @if(in_array(auth()->user()->role, ['staf','kasubag']) && $surat->disposisi->where('tujuan_user_id', auth()->id())->count())
-            @php $myDisposisi = $surat->disposisi->where('tujuan_user_id', auth()->id())->first(); @endphp
-            @if($myDisposisi && in_array($myDisposisi->status, [1, 2]))
-            <div class="bg-white rounded-2xl shadow-sm border border-purple-200">
-                <div class="p-5 border-b border-purple-100 bg-purple-50 rounded-t-2xl">
-                    <h2 class="font-semibold text-purple-800 flex items-center gap-2">
-                        <i class="fas fa-upload text-purple-600"></i> Upload Hasil Kerja
-                    </h2>
-                </div>
-                <div class="p-5">
-                    <form action="{{ route('surat.upload-hasil', $surat->id) }}" method="POST" enctype="multipart/form-data">
-                        @csrf
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">Catatan</label>
-                                <textarea name="catatan_staff" rows="2"
-                                          class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none resize-none"
-                                          placeholder="Catatan hasil kerja...">{{ old('catatan_staff') }}</textarea>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700 mb-1.5">File Hasil <span class="text-slate-400 font-normal">(PDF/JPG/PNG)</span></label>
-                                <input type="file" name="file_hasil" accept=".pdf,.jpg,.jpeg,.png"
-                                       class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                            </div>
-                            <button type="submit"
-                                    class="w-full py-2.5 bg-purple-600 text-white text-sm font-semibold rounded-xl hover:bg-purple-700 transition-colors flex items-center justify-center gap-2">
-                                <i class="fas fa-cloud-upload-alt"></i> Upload & Selesaikan
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            @endif
-            @endif
-
             {{-- Disposisi History --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
                 <div class="p-5 border-b border-slate-100 flex items-center justify-between">
