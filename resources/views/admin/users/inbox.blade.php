@@ -1,218 +1,318 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-4">
-    <h1 class="mt-4">Inbox & Tugas Saya</h1>
-    
-    {{-- 1. ERROR ALERT (Supaya ketahuan kalau ada form yang salah isi) --}}
-    @if ($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-            <strong><i class="fas fa-exclamation-triangle"></i> Terjadi Kesalahan!</strong>
-            <ul class="mb-0 mt-1">
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
+<div class="space-y-5">
+
+    {{-- Page Header --}}
+    <div>
+        <h1 class="text-2xl font-bold text-slate-800">Inbox & Tugas Saya</h1>
+        <nav class="flex items-center gap-2 text-sm text-slate-400 mt-1">
+            <a href="{{ route('home') }}" class="hover:text-blue-600">Dashboard</a>
+            <i class="bi bi-chevron-right text-xs"></i>
+            <span class="text-slate-600">Inbox</span>
+        </nav>
+    </div>
+
+    {{-- Alerts --}}
+    @if($errors->any())
+    <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 flex gap-3">
+        <i class="fas fa-exclamation-triangle text-red-500 text-lg flex-shrink-0 mt-0.5"></i>
+        <ul class="list-disc list-inside text-sm space-y-0.5">
+            @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+        </ul>
+    </div>
+    @endif
+    @if(session('success'))
+    <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl p-4 flex items-center gap-3">
+        <i class="fas fa-check-circle text-green-500 text-lg flex-shrink-0"></i>
+        <span class="text-sm">{{ session('success') }}</span>
+    </div>
     @endif
 
-    {{-- 2. SUCCESS ALERT --}}
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-            <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    {{-- Main Table Card --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-5 border-b border-slate-100">
+            <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+                <i class="fas fa-inbox text-blue-600"></i> Daftar Tugas Masuk
+                <span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded-full">
+                    {{ $disposisi_masuk->count() }}
+                </span>
+            </h2>
         </div>
-    @endif
-    
-    <div class="card mb-4 mt-3 shadow-sm">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <div><i class="fas fa-inbox me-1"></i> Daftar Tugas Masuk</div>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="datatablesSimple" class="table table-striped table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>No</th>
-                            <th>Dari / Waktu</th>
-                            <th>Perihal Surat</th>
-                            <th>Status & Catatan</th>
-                            <th class="text-center" style="min-width: 180px;">Aksi Cepat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($disposisi_masuk as $d)
-                        <tr>
-                            <td>
-                                {{ $loop->iteration }}
-                                {{-- Indikator tipe disposisi --}}
-                                @if($d->tujuan_user_id === auth()->id())
-                                    <br><span class="badge bg-primary" title="Untuk dikerjakan"><small>TUGAS</small></span>
-                                @elseif($d->dari_user_id === auth()->id() && in_array($d->status, [2, 3]))
-                                    <br><span class="badge bg-warning text-dark" title="Untuk diverifikasi"><small>VERIFIKASI</small></span>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-800 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold w-10">No</th>
+                        <th class="px-4 py-3 text-left font-semibold">Dari / Waktu</th>
+                        <th class="px-4 py-3 text-left font-semibold">Perihal Surat</th>
+                        <th class="px-4 py-3 text-left font-semibold">Status & Catatan</th>
+                        <th class="px-4 py-3 text-center font-semibold w-44">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($disposisi_masuk as $d)
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        {{-- No + Badge Tipe --}}
+                        <td class="px-4 py-3 text-center text-slate-400">
+                            {{ $loop->iteration }}
+                            @if($d->tujuan_user_id === auth()->id())
+                            <div class="mt-1"><span class="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-1.5 py-0.5 rounded-full">TUGAS</span></div>
+                            @elseif($d->dari_user_id === auth()->id() && in_array($d->status, [2,3]))
+                            <div class="mt-1"><span class="inline-block bg-amber-100 text-amber-700 text-xs font-bold px-1.5 py-0.5 rounded-full">VERIF</span></div>
+                            @endif
+                        </td>
+
+                        {{-- Dari --}}
+                        <td class="px-4 py-3">
+                            <div class="font-semibold text-slate-800">{{ $d->pengirim->name ?? 'Sistem' }}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">{{ $d->created_at->format('d M Y, H:i') }}</div>
+                        </td>
+
+                        {{-- Perihal --}}
+                        <td class="px-4 py-3">
+                            <div class="text-xs text-slate-400 mb-0.5">No: {{ $d->surat->no_surat ?? $d->surat->no_agenda ?? '-' }}</div>
+                            <div class="text-slate-700">{{ Str::limit($d->surat->perihal ?? '-', 55) }}</div>
+                            @if($d->instruksi)
+                            <div class="text-xs text-blue-600 mt-1 italic">"{{ Str::limit($d->instruksi, 50) }}"</div>
+                            @endif
+                        </td>
+
+                        {{-- Status --}}
+                        <td class="px-4 py-3">
+                            @php
+                                $dBadge = match($d->status) {
+                                    0 => 'bg-amber-100 text-amber-700',
+                                    1 => 'bg-blue-100 text-blue-700',
+                                    2 => 'bg-purple-100 text-purple-700',
+                                    3 => 'bg-orange-100 text-orange-700',
+                                    4 => 'bg-red-100 text-red-700',
+                                    5 => 'bg-green-100 text-green-700',
+                                    default => 'bg-slate-100 text-slate-600',
+                                };
+                                $statusLabels = [0=>'Belum Dibaca',1=>'Sedang Dikerjakan',2=>'Tunggu Verif Kasubag',3=>'Tunggu Verif Kabag',4=>'Perlu Revisi',5=>'Selesai'];
+                            @endphp
+                            <span class="inline-block {{ $dBadge }} text-xs font-semibold px-2.5 py-1 rounded-full">
+                                {{ $statusLabels[$d->status] ?? 'Unknown' }}
+                            </span>
+
+                            @if($d->status == 4 && $d->catatan_revisi)
+                            <div class="mt-2 bg-red-50 border border-red-200 rounded-lg p-2 text-xs text-red-700">
+                                <strong>Catatan:</strong> {{ $d->catatan_revisi }}
+                            </div>
+                            @endif
+                            @if($d->status == 5)
+                            <div class="text-xs text-green-500 mt-1">
+                                <i class="fas fa-check"></i> {{ $d->updated_at->format('d M Y') }}
+                            </div>
+                            @endif
+                        </td>
+
+                        {{-- Aksi --}}
+                        <td class="px-4 py-3">
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap">
+
+                                {{-- Detail Surat --}}
+                                @if($d->surat)
+                                <a href="{{ route('surat-masuk.show', $d->surat->id) }}"
+                                   class="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors"
+                                   title="Lihat Detail Surat">
+                                    <i class="fas fa-eye text-xs"></i>
+                                </a>
                                 @endif
-                            </td>
-                            <td>
-                                <strong>{{ $d->pengirim->name ?? 'Sistem' }}</strong><br>
-                                <small class="text-muted">{{ $d->created_at->format('d M, H:i') }}</small>
-                            </td>
-                            <td>
-                                <span class="badge bg-secondary mb-1">{{ $d->surat->no_surat ?? 'Tanpa No' }}</span><br>
-                                {{ Str::limit($d->surat->perihal ?? '-', 50) }}
-                            </td>
-                            <td>
-                                {{-- Menampilkan Status menggunakan Enum Badge --}}
-                                {!! \App\Enums\DisposisiStatus::tryFrom($d->status)?->badge() !!}
-                                
-                                {{-- Tampilkan status perubahan berdasarkan status --}}
-                                @if($d->status == 0)
-                                    <br><small class="text-muted">Menunggu Anda dibaca</small>
-                                
-                                @elseif($d->status == 1)
-                                    <br><small class="text-muted">Anda membaca: {{ $d->created_at->diffForHumans() }}</small>
-                                
-                                @elseif($d->status == 2)
-                                    <br><small class="text-warning">⏳ Menunggu verifikasi Kasubag</small>
-                                
-                                @elseif($d->status == 3)
-                                    <br><small class="text-warning">⏳ Menunggu verifikasi Kabag</small>
-                                
-                                @elseif($d->status == 4)
-                                    <br><small class="text-danger fw-bold">⚠️ Mohon segera direvisi!</small>
-                                    @if($d->catatan_revisi)
-                                        <div class="alert alert-danger p-2 mt-1 mb-0" style="font-size: 0.8rem;">
-                                            <strong>Catatan:</strong> {{ $d->catatan_revisi }}
-                                        </div>
-                                    @endif
-                                
-                                @elseif($d->status == 5)
-                                    <br><small class="text-success">✓ Selesai: {{ $d->updated_at->format('d M Y') }}</small>
+
+                                {{-- Staf: Terima --}}
+                                @if(in_array(auth()->user()->role, ['staf','staff']) && $d->status == 0)
+                                <form action="{{ route('disposisi.terima', $d->id) }}" method="POST"
+                                      onsubmit="return confirm('Mulai kerjakan tugas ini?')" style="display:inline">
+                                    @csrf
+                                    <button type="submit"
+                                            class="flex items-center gap-1 px-2.5 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors">
+                                        <i class="fas fa-hand-holding text-xs"></i> Terima
+                                    </button>
+                                </form>
                                 @endif
-                                
-                                {{-- Tampilkan penerima jika sudah di-forward --}}
-                                @if($d->penerima && $d->status >= 0)
-                                    <br><small class="badge bg-light text-dark mt-1">
-                                        → {{ $d->penerima->name }}
-                                    </small>
+
+                                {{-- Staf: Lapor Selesai --}}
+                                @if(in_array(auth()->user()->role, ['staf','staff']) && $d->status == 1)
+                                <button onclick="document.getElementById('modalSelesai{{ $d->id }}').classList.remove('hidden')"
+                                        class="flex items-center gap-1 px-2.5 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-check-double text-xs"></i> Lapor
+                                </button>
                                 @endif
-                            </td>
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-1 flex-wrap">
-                                    
-                                    {{-- A. TOMBOL DETAIL (Semua Role) --}}
-                                    @if($d->surat)
-                                        <a href="{{ route('surat-masuk.show', $d->surat->id) }}" class="btn btn-info btn-sm text-white" title="Lihat Detail Lengkap">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    @endif
 
-                                    {{-- ========================================== --}}
-                                    {{-- B. FITUR UNTUK STAFF (Terima & Lapor)      --}}
-                                    {{-- ========================================== --}}
-                                    {{-- Pastikan role di DB 'staff' atau 'staf', sesuaikan di sini --}}
-                                    @if(auth()->user()->role == 'staff' || auth()->user()->role == 'staf')
-                                        @if($d->status == 0)
-                                            {{-- Tombol Terima dengan Form POST --}}
-                                            <form action="{{ route('disposisi.terima', $d->id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Mulai kerjakan tugas ini?');">
-                                                @csrf
-                                                <button type="submit" class="btn btn-primary btn-sm">
-                                                    <i class="fas fa-hand-holding me-1"></i> Terima
-                                                </button>
-                                            </form>
-                                        @elseif($d->status == 1)
-                                            {{-- Tombol Lapor Selesai --}}
-                                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalSelesai{{ $d->id }}">
-                                                <i class="fas fa-check-double"></i> Lapor
-                                            </button>
-                                        @endif
-                                    @endif
+                                {{-- Verifikasi Kasubag (Status 2) --}}
+                                @if(in_array(auth()->user()->role, ['kasubag','admin']) && $d->status == 2 && $d->dari_user_id === auth()->id())
+                                <button onclick="document.getElementById('modalVerifikasi{{ $d->id }}').classList.remove('hidden')"
+                                        class="flex items-center gap-1 px-2.5 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-semibold hover:bg-amber-600 transition-colors">
+                                    <i class="fas fa-clipboard-check text-xs"></i> Verif
+                                </button>
+                                @endif
 
-                                    {{-- ========================================== --}}
-                                    {{-- C. VERIFIKASI KASUBAG (Status 2)           --}}
-                                    {{-- ========================================== --}}
-                                    @if((auth()->user()->role == 'kasubag' || auth()->user()->role == 'admin') && $d->status == 2 && $d->dari_user_id === auth()->id())
-                                        <button type="button" class="btn btn-warning btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalVerifikasi{{ $d->id }}" title="Verifikasi Kasubag">
-                                            <i class="fas fa-clipboard-check"></i> Verifikasi Kasubag
-                                        </button>
-                                    @endif
+                                {{-- Verifikasi Kabag (Status 3) --}}
+                                @if(in_array(auth()->user()->role, ['kabag','admin']) && $d->status == 3 && $d->dari_user_id === auth()->id())
+                                <button onclick="document.getElementById('modalVerifikasiKabag{{ $d->id }}').classList.remove('hidden')"
+                                        class="flex items-center gap-1 px-2.5 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors">
+                                    <i class="fas fa-shield-alt text-xs"></i> Verif
+                                </button>
+                                @endif
 
-                                    {{-- ========================================== --}}
-                                    {{-- D. VERIFIKASI KABAG (Status 3)            --}}
-                                    {{-- ========================================== --}}
-                                    @if((auth()->user()->role == 'kabag' || auth()->user()->role == 'admin') && $d->status == 3 && $d->dari_user_id === auth()->id())
-                                        <button type="button" class="btn btn-danger btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalVerifikasiKabag{{ $d->id }}" title="Verifikasi Kabag">
-                                            <i class="fas fa-shield-alt"></i> Verifikasi Kabag
-                                        </button>
-                                    @endif
+                                {{-- Disposisi Lanjutan --}}
+                                @if(in_array(auth()->user()->role, ['admin','kabag','kasubag']) && $d->status < 2 && $d->surat)
+                                <button onclick="document.getElementById('modalDisposisiInbox{{ $d->surat->id }}').classList.remove('hidden')"
+                                        class="w-8 h-8 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center hover:bg-slate-200 transition-colors"
+                                        title="Disposisi Lanjutan">
+                                    <i class="fas fa-paper-plane text-xs"></i>
+                                </button>
+                                @endif
 
-                                    {{-- ========================================== --}}
-                                    {{-- E. DISPOSISI LANJUTAN (Atasan) --}}
-                                    {{-- ========================================== --}}
-                                    @if(in_array(auth()->user()->role, ['admin', 'kabag', 'kasubag']) && $d->status < 2)
-                                        <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalDisposisi{{ $d->surat->id }}" title="Teruskan Disposisi">
-                                            <i class="fas fa-paper-plane"></i>
-                                        </button>
-                                    @endif
+                                {{-- Hapus --}}
+                                @if(in_array(auth()->user()->role, ['admin','kabag','kasubag']))
+                                <form action="{{ route('disposisi.destroy', $d->id) }}" method="POST"
+                                      onsubmit="return confirm('Yakin hapus disposisi ini?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit"
+                                            class="w-8 h-8 bg-red-100 text-red-600 rounded-lg flex items-center justify-center hover:bg-red-200 transition-colors"
+                                            title="Hapus">
+                                        <i class="fas fa-trash text-xs"></i>
+                                    </button>
+                                </form>
+                                @endif
 
-                                    {{-- E. TOMBOL HAPUS (Atasan) --}}
-                                    @if(in_array(auth()->user()->role, ['admin', 'kabag', 'kasubag']))
-                                        <form action="{{ route('disposisi.destroy', $d->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin hapus disposisi ini?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm" title="Hapus Riwayat">
-                                                <i class="fas fa-trash-alt"></i>
-                                            </button>
-                                        </form>
-                                    @endif
-
-                                </div>
-                            </td>
-                        </tr>
-                        @empty
-                        <tr>
-                            <td colspan="5" class="text-center py-4 text-muted">Tidak ada tugas / pesan masuk.</td>
-                        </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" class="px-4 py-12 text-center text-slate-400">
+                            <i class="fas fa-inbox text-4xl block mb-2 opacity-30"></i>
+                            Tidak ada tugas / pesan masuk.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-{{-- ========================================================== --}}
-{{-- AREA MODAL POPUP (DI LUAR TABEL - AMAN DARI DATATABLES) --}}
-{{-- ========================================================== --}}
+{{-- ============================================================ --}}
+{{-- MODALS (Outside table) --}}
+{{-- ============================================================ --}}
 
 @foreach($disposisi_masuk as $d)
 
-    {{-- 1. MODAL STAFF: LAPOR SELESAI --}}
-    @if((auth()->user()->role == 'staff' || auth()->user()->role == 'staf') && $d->status == 1)
-    <div class="modal fade" id="modalSelesai{{ $d->id }}" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                {{-- Form dengan Multipart untuk Upload File --}}
-                <form action="{{ route('disposisi.selesai', $d->id) }}" method="POST" enctype="multipart/form-data">
+    {{-- 1. MODAL STAF: Lapor Selesai --}}
+    @if(in_array(auth()->user()->role, ['staf','staff']) && $d->status == 1)
+    <div id="modalSelesai{{ $d->id }}"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+         onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onclick="event.stopPropagation()">
+            <form action="{{ route('disposisi.selesai', $d->id) }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-check-double text-green-600"></i> Lapor Pekerjaan Selesai
+                    </h3>
+                    <button type="button" onclick="document.getElementById('modalSelesai{{ $d->id }}').classList.add('hidden')"
+                            class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">File Hasil Kerja <span class="text-slate-400 font-normal">(Opsional)</span></label>
+                        <input type="file" name="file_hasil" accept=".pdf,.doc,.docx,.jpg,.png"
+                               class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5">
+                        <p class="text-xs text-slate-400 mt-1">PDF/Word/Gambar</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Catatan Pengerjaan <span class="text-red-500">*</span></label>
+                        <textarea name="catatan_staff" rows="3" required
+                                  placeholder="Contoh: Surat balasan sudah saya print dan taruh di meja bapak."
+                                  class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 px-5 pb-5 border-t border-slate-100 pt-4">
+                    <button type="button" onclick="document.getElementById('modalSelesai{{ $d->id }}').classList.add('hidden')"
+                            class="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-sm bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 flex items-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Kirim Laporan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endif
+
+    {{-- 2. MODAL VERIFIKASI KASUBAG (Status 2) --}}
+    @if(in_array(auth()->user()->role, ['admin','kasubag','kabag']) && $d->status == 2)
+    <div id="modalVerifikasi{{ $d->id }}"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+         onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between p-5 border-b border-amber-200 bg-amber-50 rounded-t-2xl">
+                <h3 class="font-bold text-amber-800 flex items-center gap-2">
+                    <i class="fas fa-clipboard-check"></i> Verifikasi Hasil Pekerjaan
+                </h3>
+                <button type="button" onclick="document.getElementById('modalVerifikasi{{ $d->id }}').classList.add('hidden')"
+                        class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="bg-slate-50 rounded-xl p-4 grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                        <p class="text-xs text-slate-400 font-semibold uppercase mb-0.5">Dari Staff</p>
+                        <p class="font-semibold text-slate-800">{{ $d->penerima->name ?? 'Bawahan' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 font-semibold uppercase mb-0.5">Waktu</p>
+                        <p class="text-slate-600">{{ $d->updated_at->format('d M Y, H:i') }}</p>
+                    </div>
+                    <div class="col-span-2">
+                        <p class="text-xs text-slate-400 font-semibold uppercase mb-0.5">Catatan Staff</p>
+                        <p class="italic text-blue-700">"{{ $d->catatan_staff ?? '-' }}"</p>
+                    </div>
+                </div>
+
+                @if($d->file_hasil)
+                @php $ext = pathinfo($d->file_hasil, PATHINFO_EXTENSION); $fileUrl = asset('storage/'.$d->file_hasil); @endphp
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                        <span class="text-xs font-bold text-slate-600 uppercase">Preview File ({{ $ext }})</span>
+                        <a href="{{ $fileUrl }}" target="_blank" download class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </div>
+                    @if(in_array(strtolower($ext), ['jpg','jpeg','png']))
+                    <img src="{{ $fileUrl }}" class="max-h-64 mx-auto block">
+                    @elseif(strtolower($ext) == 'pdf')
+                    <iframe src="{{ $fileUrl }}" class="w-full h-64 border-0"></iframe>
+                    @else
+                    <div class="py-8 text-center text-slate-400 text-sm">Preview tidak tersedia</div>
+                    @endif
+                </div>
+                @else
+                <div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-3 text-sm text-center">
+                    Staff tidak melampirkan file.
+                </div>
+                @endif
+
+                <form action="{{ route('disposisi.verifikasi', $d->id) }}" method="POST">
                     @csrf
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title">Lapor Pekerjaan Selesai</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Catatan (jika perlu revisi)</label>
+                        <input type="text" name="catatan_revisi" placeholder="Tulis catatan..."
+                               class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="fw-bold">File Hasil Kerja (Opsional)</label>
-                            <input type="file" name="file_hasil" class="form-control">
-                            <small class="text-muted">Upload dokumen PDF/Word/Gambar jika ada.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label class="fw-bold">Catatan Pengerjaan <span class="text-danger">*</span></label>
-                            <textarea name="catatan_staff" class="form-control" rows="3" required placeholder="Contoh: Surat balasan sudah saya print dan taruh di meja bapak."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-success">Kirim Laporan</button>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="submit" name="status_akhir" value="Revisi"
+                                class="py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-undo"></i> Minta Revisi
+                        </button>
+                        <button type="submit" name="status_akhir" value="Selesai"
+                                onclick="return confirm('ACC pekerjaan ini?')"
+                                class="py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-check-double"></i> ACC Selesai
+                        </button>
                     </div>
                 </form>
             </div>
@@ -220,220 +320,129 @@
     </div>
     @endif
 
-    {{-- 2. MODAL KASUBAG/KABAG: VERIFIKASI HASIL KERJA STAFF --}}
-    @if(in_array(auth()->user()->role, ['admin', 'kasubag', 'kabag']) && $d->status == 2)
-    <div class="modal fade" id="modalVerifikasi{{ $d->id }}" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content border-warning">
-                <div class="modal-header bg-warning">
-                    <h5 class="modal-title text-dark"><i class="fas fa-clipboard-check"></i> Verifikasi Pekerjaan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    {{-- Info Staff --}}
-                    <div class="alert alert-light border mb-3">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Dari Staff:</strong> {{ $d->penerima->name ?? 'Bawahan' }}
-                            </div>
-                            <div class="col-md-6 text-md-end">
-                                <small class="text-muted">{{ $d->updated_at->format('d M Y, H:i') }}</small>
-                            </div>
-                        </div>
-                        <hr class="my-1">
-                        <strong>Catatan:</strong> <em class="text-primary">"{{ $d->catatan_staff }}"</em>
-                    </div>
-
-                    {{-- AREA LIVE PREVIEW FILE --}}
-                    @if($d->file_hasil)
-                        @php
-                            $ext = pathinfo($d->file_hasil, PATHINFO_EXTENSION);
-                            $fileUrl = asset('storage/'.$d->file_hasil);
-                        @endphp
-
-                        <div class="card mb-3">
-                            <div class="card-header bg-light d-flex justify-content-between align-items-center py-1">
-                                <small class="fw-bold text-uppercase">Preview File ({{ $ext }})</small>
-                                <a href="{{ $fileUrl }}" class="btn btn-sm btn-outline-primary" target="_blank" download>
-                                    <i class="fas fa-download"></i> Download
-                                </a>
-                            </div>
-                            <div class="card-body p-0 text-center bg-secondary bg-opacity-10">
-                                {{-- Logic Preview (Image/PDF/Word) --}}
-                                @if(in_array(strtolower($ext), ['jpg', 'jpeg', 'png']))
-                                    <img src="{{ $fileUrl }}" class="img-fluid" style="max-height: 400px;">
-                                @elseif(strtolower($ext) == 'pdf')
-                                    <iframe src="{{ $fileUrl }}" style="width: 100%; height: 500px;" frameborder="0"></iframe>
-                                @else
-                                    <div class="py-5">
-                                        <i class="fas fa-file-alt fa-3x text-secondary mb-3"></i>
-                                        <p>Preview tidak tersedia untuk format ini.</p>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    @else
-                        <div class="alert alert-warning text-center">Staff tidak melampirkan file.</div>
-                    @endif
-                    
-                    {{-- Form Keputusan --}}
-                    <form action="{{ route('disposisi.verifikasi', $d->id) }}" method="POST">
-                        @csrf
-                        <div class="mb-3">
-                            <label class="fw-bold">Keputusan:</label>
-                            <input type="text" name="catatan_revisi" class="form-control" placeholder="Tulis catatan jika minta revisi...">
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="submit" name="status_akhir" value="Revisi" class="btn btn-danger w-100">
-                                    <i class="fas fa-undo"></i> Minta Revisi
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <button type="submit" name="status_akhir" value="Selesai" class="btn btn-success w-100 fw-bold" onclick="return confirm('ACC pekerjaan ini?')">
-                                    <i class="fas fa-check-double"></i> ACC Selesai
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-
     {{-- 2B. MODAL VERIFIKASI KABAG (Status 3) --}}
-    @if((auth()->user()->role == 'kabag' || auth()->user()->role == 'admin') && $d->status == 3 && $d->surat)
-    <div class="modal fade" id="modalVerifikasiKabag{{ $d->id }}" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content border-danger">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="fas fa-shield-alt"></i> Verifikasi Akhir Kabag</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-light border mb-3">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Dari Kasubag:</strong> {{ $d->penerima->name ?? 'Kasubag' }}
-                            </div>
-                            <div class="col-md-6 text-md-end">
-                                <small class="text-muted">{{ $d->updated_at->format('d M Y, H:i') }}</small>
-                            </div>
-                        </div>
-                        <hr class="my-1">
-                        <strong>Status Sebelumnya:</strong> <span class="badge bg-warning text-dark">Menunggu Verifikasi Kasubag</span>
-                    </div>
-
-                    <div class="card mb-3">
-                        <div class="card-header bg-light">
-                            <strong>Catatan Staff:</strong> <em class="text-primary">"{{ $d->catatan_staff }}"</em>
-                        </div>
-                    </div>
-
-                    {{-- FILE PREVIEW --}}
-                    @if($d->file_hasil)
-                        @php
-                            $ext = pathinfo($d->file_hasil, PATHINFO_EXTENSION);
-                            $fileUrl = asset('storage/'.$d->file_hasil);
-                        @endphp
-                        <div class="card mb-3">
-                            <div class="card-header bg-light d-flex justify-content-between align-items-center py-1">
-                                <small class="fw-bold text-uppercase">File Hasil ({{ $ext }})</small>
-                                <a href="{{ $fileUrl }}" class="btn btn-sm btn-outline-primary" target="_blank" download>
-                                    <i class="fas fa-download"></i> Download
-                                </a>
-                            </div>
-                            <div class="card-body p-0 text-center bg-secondary bg-opacity-10">
-                                @if(in_array(strtolower($ext), ['jpg', 'jpeg', 'png']))
-                                    <img src="{{ $fileUrl }}" class="img-fluid" style="max-height: 400px;">
-                                @elseif(strtolower($ext) == 'pdf')
-                                    <iframe src="{{ $fileUrl }}" style="width: 100%; height: 500px;" frameborder="0"></iframe>
-                                @else
-                                    <div class="py-5">
-                                        <i class="fas fa-file-alt fa-3x text-secondary mb-3"></i>
-                                        <p>Preview tidak tersedia.</p>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
+    @if(in_array(auth()->user()->role, ['kabag','admin']) && $d->status == 3 && $d->surat)
+    <div id="modalVerifikasiKabag{{ $d->id }}"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+         onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl" onclick="event.stopPropagation()">
+            <div class="flex items-center justify-between p-5 border-b border-red-200 bg-red-50 rounded-t-2xl">
+                <h3 class="font-bold text-red-800 flex items-center gap-2">
+                    <i class="fas fa-shield-alt"></i> Verifikasi Akhir Kabag
+                </h3>
+                <button type="button" onclick="document.getElementById('modalVerifikasiKabag{{ $d->id }}').classList.add('hidden')"
+                        class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div class="bg-slate-50 rounded-xl p-4 text-sm">
+                    <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Dari Kasubag</p>
+                    <p class="font-semibold text-slate-800">{{ $d->penerima->name ?? 'Kasubag' }}</p>
+                    @if($d->catatan_staff)
+                    <p class="mt-2 italic text-blue-700">"{{ $d->catatan_staff }}"</p>
                     @endif
-
-                    {{-- KEPUTUSAN FINAL KABAG --}}
-                    <form action="{{ route('disposisi.verifikasi', $d->id) }}" method="POST">
-                        @csrf
-                        <div class="mb-3">
-                            <label class="fw-bold d-block mb-2">Keputusan Akhir Kabag:</label>
-                            <textarea name="catatan_revisi" class="form-control" rows="3" placeholder="Tulis catatan jika perlu revisi atau ACC..."></textarea>
-                        </div>
-                        <div class="row g-2">
-                            <div class="col-6">
-                                <button type="submit" name="status_akhir" value="Revisi" class="btn btn-danger w-100 fw-bold">
-                                    <i class="fas fa-undo"></i> Minta Revisi
-                                </button>
-                            </div>
-                            <div class="col-6">
-                                <button type="submit" name="status_akhir" value="Selesai" class="btn btn-success w-100 fw-bold" onclick="return confirm('ACC verifikasi akhir ini? Disposisi akan selesai.')">
-                                    <i class="fas fa-check-circle"></i> ACC Selesai
-                                </button>
-                            </div>
-                        </div>
-                    </form>
                 </div>
+
+                @if($d->file_hasil)
+                @php $ext2 = pathinfo($d->file_hasil, PATHINFO_EXTENSION); $fileUrl2 = asset('storage/'.$d->file_hasil); @endphp
+                <div class="border border-slate-200 rounded-xl overflow-hidden">
+                    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                        <span class="text-xs font-bold text-slate-600 uppercase">File Hasil ({{ $ext2 }})</span>
+                        <a href="{{ $fileUrl2 }}" target="_blank" download class="text-xs text-blue-600 hover:underline">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </div>
+                    @if(in_array(strtolower($ext2), ['jpg','jpeg','png']))
+                    <img src="{{ $fileUrl2 }}" class="max-h-64 mx-auto block">
+                    @elseif(strtolower($ext2) == 'pdf')
+                    <iframe src="{{ $fileUrl2 }}" class="w-full h-64 border-0"></iframe>
+                    @else
+                    <div class="py-8 text-center text-slate-400 text-sm">Preview tidak tersedia</div>
+                    @endif
+                </div>
+                @endif
+
+                <form action="{{ route('disposisi.verifikasi', $d->id) }}" method="POST">
+                    @csrf
+                    <div class="mb-4">
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Catatan Akhir Kabag</label>
+                        <textarea name="catatan_revisi" rows="3" placeholder="Tulis catatan jika perlu revisi atau ACC..."
+                                  class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"></textarea>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="submit" name="status_akhir" value="Revisi"
+                                class="py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-undo"></i> Minta Revisi
+                        </button>
+                        <button type="submit" name="status_akhir" value="Selesai"
+                                onclick="return confirm('ACC verifikasi akhir ini?')"
+                                class="py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center justify-center gap-2">
+                            <i class="fas fa-check-circle"></i> ACC Selesai
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
     @endif
 
     {{-- 3. MODAL DISPOSISI LANJUTAN --}}
-    @if(in_array(auth()->user()->role, ['admin', 'kabag', 'kasubag']) && $d->status < 2 && $d->surat)
-    <div class="modal fade" id="modalDisposisi{{ $d->surat->id }}" tabindex="-1">
-        <div class="modal-dialog">
+    @if(in_array(auth()->user()->role, ['admin','kabag','kasubag']) && $d->status < 2 && $d->surat)
+    <div id="modalDisposisiInbox{{ $d->surat->id }}"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+         onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onclick="event.stopPropagation()">
             <form action="{{ route('disposisi.store') }}" method="POST">
                 @csrf
                 <input type="hidden" name="surat_masuk_id" value="{{ $d->surat->id }}">
-
-                <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title">Disposisi Lanjutan</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-paper-plane text-blue-600"></i> Disposisi Lanjutan
+                    </h3>
+                    <button type="button" onclick="document.getElementById('modalDisposisiInbox{{ $d->surat->id }}').classList.add('hidden')"
+                            class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                </div>
+                <div class="p-5 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Diteruskan Kepada <span class="text-red-500">*</span></label>
+                        <select name="tujuan_user_id" required
+                                class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            <option value="">-- Pilih Bawahan --</option>
+                            @if(isset($listTujuan) && $listTujuan->count())
+                            @foreach($listTujuan as $u)
+                            <option value="{{ $u->id }}">{{ $u->name }}</option>
+                            @endforeach
+                            @else
+                            <option value="" disabled>Tidak ada bawahan tersedia</option>
+                            @endif
+                        </select>
                     </div>
-                    <div class="modal-body">
-                        <div class="mb-3">
-                            <label class="fw-bold">Diteruskan Kepada:</label>
-                            <select name="tujuan_user_id" class="form-select" required>
-                                <option value="">-- Pilih Bawahan --</option>
-                                @if(isset($listTujuan) && $listTujuan->count() > 0)
-                                    @foreach($listTujuan as $user)
-                                        <option value="{{ $user->id }}">{{ $user->name }}</option> 
-                                    @endforeach
-                                @else
-                                    <option value="" disabled>Tidak ada bawahan</option>
-                                @endif
-                            </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                             <label class="fw-bold">Jenis Surat <span class="text-danger">*</span></label>
-                             <input type="text" name="jenis_surat" class="form-control" value="{{ $d->surat->jenis_surat ?? 'Surat' }}" required>
-                        </div>
-                        
-                        <div class="mb-3">
-                             <label class="fw-bold">Sifat <span class="text-danger">*</span></label>
-                             <select name="sifat" class="form-select" required>
-                                <option value="Biasa">Biasa</option>
-                                <option value="Segera">Segera</option>
-                             </select>
-                        </div>
-                        
-                        <div class="mb-3">
-                             <label class="fw-bold">Instruksi <span class="text-danger">*</span></label>
-                             <textarea name="instruksi" class="form-control" rows="3" required placeholder="Berikan instruksi untuk penyelesaian surat ini..."></textarea>
-                        </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jenis Surat <span class="text-red-500">*</span></label>
+                        <input type="text" name="jenis_surat" value="{{ $d->surat->jenis_surat ?? 'Surat' }}" required
+                               class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                     </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Kirim</button>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Sifat <span class="text-red-500">*</span></label>
+                        <select name="sifat" required
+                                class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                            <option value="Biasa">Biasa</option>
+                            <option value="Segera">Segera</option>
+                            <option value="Sangat Segera">Sangat Segera</option>
+                        </select>
                     </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Instruksi <span class="text-red-500">*</span></label>
+                        <textarea name="instruksi" rows="3" required
+                                  placeholder="Berikan instruksi untuk penyelesaian surat ini..."
+                                  class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-3 px-5 pb-5 border-t border-slate-100 pt-4">
+                    <button type="button" onclick="document.getElementById('modalDisposisiInbox{{ $d->surat->id }}').classList.add('hidden')"
+                            class="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50">Batal</button>
+                    <button type="submit" class="px-5 py-2 text-sm bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 flex items-center gap-2">
+                        <i class="fas fa-paper-plane"></i> Kirim
+                    </button>
                 </div>
             </form>
         </div>
@@ -441,5 +450,4 @@
     @endif
 
 @endforeach
-
 @endsection

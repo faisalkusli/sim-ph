@@ -1,284 +1,411 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-4">
-    <h1 class="mt-4">Surat Masuk</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-        <li class="breadcrumb-item active">Surat Masuk</li>
-    </ol>
+<div class="space-y-5">
 
-    <div class="card mb-4 shadow-sm">
-        <div class="card-header d-flex justify-content-between align-items-center bg-white">
-            <div class="fw-bold"><i class="fas fa-envelope me-1"></i> Data Surat Masuk</div>
-            
-            @if(auth()->user()->role == 'tamu')
-            <a href="{{ route('surat-masuk.create') }}" class="btn btn-primary btn-sm">
-                <i class="fas fa-plus"></i> Input Surat Baru
-            </a>
-            @endif
+    {{-- Page Header --}}
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Surat Masuk</h1>
+            <nav class="flex items-center gap-2 text-sm text-slate-400 mt-1">
+                <a href="{{ route('home') }}" class="hover:text-blue-600">Dashboard</a>
+                <i class="bi bi-chevron-right text-xs"></i>
+                <span class="text-slate-600">Surat Masuk</span>
+            </nav>
         </div>
-        
-        <div class="card-body">
-            <form action="{{ route('surat-masuk.index') }}" method="GET" class="mb-4">
-                <div class="input-group">
-                    <input type="text" name="cari" class="form-control" placeholder="Cari No Surat / Perihal..." value="{{ request('cari') }}">
-                    <button class="btn btn-secondary" type="submit"><i class="fas fa-search"></i> Cari</button>
-                    @if(request('cari')) <a href="{{ route('surat-masuk.index') }}" class="btn btn-light border">Reset</a> @endif
+        @if(in_array(auth()->user()->role, ['admin','operator','tamu']))
+        <a href="{{ route('surat-masuk.create') }}"
+           class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+            <i class="fas fa-plus"></i> Input Surat Baru
+        </a>
+        @endif
+    </div>
+
+    {{-- Alerts --}}
+    @if(session('success'))
+    <div class="bg-green-50 border border-green-200 text-green-800 rounded-xl p-4 flex items-center gap-3">
+        <i class="fas fa-check-circle text-green-500 text-lg flex-shrink-0"></i>
+        <span class="text-sm">{{ session('success') }}</span>
+    </div>
+    @endif
+    @if(session('warning'))
+    <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl p-4 flex items-center gap-3">
+        <i class="fas fa-exclamation-triangle text-amber-500 text-lg flex-shrink-0"></i>
+        <span class="text-sm">{{ session('warning') }}</span>
+    </div>
+    @endif
+    @if(session('error'))
+    <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 flex items-center gap-3">
+        <i class="fas fa-times-circle text-red-500 text-lg flex-shrink-0"></i>
+        <span class="text-sm">{{ session('error') }}</span>
+    </div>
+    @endif
+
+    {{-- Main Card --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+
+        {{-- Search & Filters --}}
+        <div class="p-4 border-b border-slate-100">
+            <form action="{{ route('surat-masuk.index') }}" method="GET" class="flex flex-wrap items-center gap-3">
+                <div class="flex-1 min-w-48 relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" name="cari"
+                           class="w-full pl-9 pr-4 py-2.5 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                           placeholder="Cari No Surat / Perihal / Instansi..."
+                           value="{{ request('cari') }}">
                 </div>
+                <select name="jenis"
+                        class="py-2.5 px-3 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white text-slate-600">
+                    <option value="">-- Semua Jenis --</option>
+                    @foreach(['Peraturan Bupati','SK Bupati','Surat Undangan','Surat Tembusan','Surat Lainnya'] as $j)
+                    <option value="{{ $j }}" {{ request('jenis') == $j ? 'selected' : '' }}>{{ $j }}</option>
+                    @endforeach
+                </select>
+                <button type="submit"
+                        class="px-4 py-2.5 bg-slate-800 text-white rounded-xl text-sm font-medium hover:bg-slate-900 transition-colors">
+                    Cari
+                </button>
+                @if(request('cari') || request('jenis'))
+                <a href="{{ route('surat-masuk.index') }}"
+                   class="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-sm font-medium hover:bg-slate-200 transition-colors">
+                    Reset
+                </a>
+                @endif
             </form>
+        </div>
 
-            @if(session('success'))
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle me-1"></i> {{ session('success') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-            
-            @if(session('warning'))
-                <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle me-1"></i> {{ session('warning') }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
+        {{-- Table --}}
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-800 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-left font-semibold w-10">No</th>
+                        <th class="px-4 py-3 text-left font-semibold">Info Agenda</th>
+                        <th class="px-4 py-3 text-left font-semibold">Asal & Tanggal</th>
+                        <th class="px-4 py-3 text-left font-semibold">Jenis Surat</th>
+                        <th class="px-4 py-3 text-left font-semibold">Perihal</th>
+                        <th class="px-4 py-3 text-center font-semibold w-20">File</th>
+                        <th class="px-4 py-3 text-center font-semibold w-36">Status</th>
+                        <th class="px-4 py-3 text-center font-semibold w-36">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($surat_masuk as $surat)
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        {{-- No --}}
+                        <td class="px-4 py-3 text-slate-400 text-center">
+                            {{ $loop->iteration + $surat_masuk->firstItem() - 1 }}
+                        </td>
 
-            <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle">
-                    <thead class="table-light text-center">
-                        <tr>
-                            <th width="5%">No</th>
-                            <th width="15%">Info Agenda</th>
-                            <th width="20%">Asal & Tgl</th>
-                            <th width="25%">Perihal</th>
-                            <th width="10%">File</th>
-                            <th width="15%">Status & Riwayat</th> 
-                            <th width="10%">Aksi</th> 
-                        </tr>
-                    </thead>
-                    
-                    <tbody>
-                        @forelse($surat_masuk as $surat)
-                            <tr>
-                                <td class="text-center">{{ $loop->iteration + $surat_masuk->firstItem() - 1 }}</td>
-                                <td class="text-center">
-                                    <h6 class="badge bg-info mb-1">{{ $surat->no_agenda }}</h6>
-                                    <div class="small text-muted">Diterima: {{ \Carbon\Carbon::parse($surat->tgl_diterima)->format('d/m/Y') }}</div>
-                                </td>
-                                <td>
-                                    <div class="fw-bold text-primary">{{ $surat->asal_instansi }}</div>
-                                    <div class="small text-muted">No: {{ $surat->no_surat_pengirim }}</div>
-                                    <div class="small text-muted">Tgl: {{ \Carbon\Carbon::parse($surat->tgl_surat)->format('d M Y') }}</div>
-                                </td>
-                                <td>{{ Str::limit($surat->perihal, 80) }}</td>
-                                <td class="text-center">
-                                    @if($surat->file_scan_path)
-                                        <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#previewModal{{ $surat->id }}">
-                                            <i class="fas fa-eye"></i>
+                        {{-- Agenda --}}
+                        <td class="px-4 py-3">
+                            <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                {{ $surat->no_agenda }}
+                            </span>
+                            <div class="text-xs text-slate-400 mt-1">
+                                Diterima: {{ \Carbon\Carbon::parse($surat->tgl_diterima)->format('d/m/Y') }}
+                            </div>
+                        </td>
+
+                        {{-- Asal --}}
+                        <td class="px-4 py-3">
+                            <div class="font-semibold text-slate-800">{{ $surat->asal_instansi }}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">No: {{ $surat->no_surat_pengirim }}</div>
+                            <div class="text-xs text-slate-400">{{ \Carbon\Carbon::parse($surat->tgl_surat)->format('d M Y') }}</div>
+                        </td>
+
+                        {{-- Jenis Surat --}}
+                        <td class="px-4 py-3">
+                            @if($surat->jenis_surat)
+                            @php
+                                $jenisCls = match($surat->jenis_surat) {
+                                    'Peraturan Bupati' => 'bg-red-100 text-red-700',
+                                    'SK Bupati'        => 'bg-orange-100 text-orange-700',
+                                    'Surat Undangan'   => 'bg-blue-100 text-blue-700',
+                                    'Surat Tembusan'   => 'bg-purple-100 text-purple-700',
+                                    default            => 'bg-slate-100 text-slate-600',
+                                };
+                            @endphp
+                            <span class="inline-block {{ $jenisCls }} text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">
+                                {{ $surat->jenis_surat }}
+                            </span>
+                            @else
+                            <span class="text-slate-300 text-xs">—</span>
+                            @endif
+                        </td>
+
+                        {{-- Perihal --}}
+                        <td class="px-4 py-3 text-slate-700 max-w-xs">
+                            {{ Str::limit($surat->perihal, 80) }}
+                        </td>
+
+                        {{-- File --}}
+                        <td class="px-4 py-3 text-center">
+                            @if($surat->file_scan_path)
+                            <button onclick="document.getElementById('previewModal{{ $surat->id }}').classList.remove('hidden')"
+                                    class="w-8 h-8 bg-red-100 text-red-600 rounded-lg flex items-center justify-center mx-auto hover:bg-red-200 transition-colors">
+                                <i class="fas fa-eye text-xs"></i>
+                            </button>
+                            @else
+                            <span class="text-slate-300">—</span>
+                            @endif
+                        </td>
+
+                        {{-- Status --}}
+                        <td class="px-4 py-3 text-center">
+                            @php
+                                $st = $surat->status;
+                                $badgeCls = match(true) {
+                                    str_contains($st,'Menunggu') => 'bg-amber-100 text-amber-700',
+                                    in_array($st,['Siap Disposisi','Disetujui','Diterima']) => 'bg-green-100 text-green-700',
+                                    $st=='Ditolak' => 'bg-red-100 text-red-700',
+                                    str_contains($st,'Naik') => 'bg-slate-200 text-slate-700',
+                                    str_contains($st,'Turun') => 'bg-cyan-100 text-cyan-700',
+                                    str_contains($st,'Selesai') => 'bg-emerald-100 text-emerald-700',
+                                    str_contains($st,'Revisi') => 'bg-yellow-100 text-yellow-700',
+                                    str_contains($st,'Diproses') => 'bg-indigo-100 text-indigo-700',
+                                    str_contains($st,'Disposisi') => 'bg-blue-100 text-blue-700',
+                                    default => 'bg-slate-100 text-slate-600',
+                                };
+                            @endphp
+                            <span class="inline-block {{ $badgeCls }} text-xs font-semibold px-2.5 py-1 rounded-full">
+                                {{ $st }}
+                            </span>
+                            {{-- Validasi info --}}
+                            @if($surat->validasi_oleh && $surat->tgl_validasi)
+                            <div class="text-xs mt-1 {{ $st == 'Ditolak' ? 'text-red-500' : 'text-green-600' }}">
+                                <i class="fas fa-user-check text-[10px]"></i>
+                                {{ $surat->validasi_oleh }}<br>
+                                <span class="text-slate-400">{{ \Carbon\Carbon::parse($surat->tgl_validasi)->format('d/m/Y H:i') }}</span>
+                            </div>
+                            @endif
+                            @if(str_contains($st,'Naik') && $surat->tgl_naik_bupati)
+                            <div class="text-xs text-slate-500 mt-1">
+                                <i class="fas fa-arrow-up"></i> {{ \Carbon\Carbon::parse($surat->tgl_naik_bupati)->format('d/m/y') }}
+                                @if($surat->no_npknd)
+                                <br><small class="italic">{{ $surat->no_npknd }}</small>
+                                @endif
+                            </div>
+                            @endif
+                        </td>
+
+                        {{-- Aksi --}}
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center justify-center gap-1 flex-wrap">
+
+                                {{-- Cetak (Disetujui) --}}
+                                @if($surat->status == 'Disetujui')
+                                <a href="{{ route('surat-masuk.cetak', $surat->id) }}" target="_blank"
+                                   class="w-8 h-8 bg-amber-500 text-white rounded-lg flex items-center justify-center hover:bg-amber-600 transition-colors"
+                                   title="Cetak">
+                                    <i class="fas fa-print text-xs"></i>
+                                </a>
+                                @endif
+
+                                {{-- Dropdown Opsi --}}
+                                <div class="relative" x-data="{ open: false }">
+                                    <button @click="open = !open" @click.away="open = false"
+                                            class="px-2.5 py-1.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-medium hover:bg-slate-200 transition-colors flex items-center gap-1">
+                                        Opsi <i class="bi bi-chevron-down text-xs"></i>
+                                    </button>
+                                    <div x-show="open" x-cloak x-transition
+                                         class="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-xl border border-slate-100 py-1 z-10">
+                                        <a href="{{ route('surat-masuk.show', $surat->id) }}"
+                                           class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                                            <i class="fas fa-eye text-blue-500"></i> Detail & Disposisi
+                                        </a>
+                                        <a href="{{ route('surat-masuk.tracking', $surat->id) }}"
+                                           class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                                            <i class="fas fa-history text-purple-500"></i> Tracking
+                                        </a>
+
+                                        @if(in_array(auth()->user()->role, ['admin','kabag','super_admin']))
+                                        <div class="border-t border-slate-100 my-1"></div>
+                                        @if(!in_array($surat->status, ['Naik ke Bupati','Turun dari Bupati','Ditolak']))
+                                        <button type="button"
+                                                onclick="document.getElementById('modalNaik{{ $surat->id }}').classList.remove('hidden')"
+                                                class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 w-full text-left">
+                                            <i class="fas fa-arrow-circle-up text-red-500"></i> Naik ke Bupati
                                         </button>
-                                        <div class="modal fade" id="previewModal{{ $surat->id }}" tabindex="-1">
-                                            <div class="modal-dialog modal-xl">
-                                                <div class="modal-content">
-                                                    <div class="modal-header"><h5 class="modal-title">File Surat</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-                                                    <div class="modal-body" style="height: 80vh;">
-                                                        <iframe src="{{ asset('storage/' . $surat->file_scan_path) }}" width="100%" height="100%" style="border:none;"></iframe>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @else
-                                        <span class="text-muted">-</span>
-                                    @endif
-                                </td>
-
-                                <td class="text-center">
-                                    @php
-                                        $st = $surat->status; 
-                                        $cls = 'secondary';
-                                        
-                                        if($st == 'Menunggu') $cls = 'warning text-dark';
-                                        elseif($st == 'Siap Disposisi' || $st == 'Disetujui' || $st == 'Diterima') $cls = 'success';
-                                        elseif($st == 'Ditolak') $cls = 'danger';
-                                        elseif($st == 'Naik ke Bupati') $cls = 'dark';
-                                        elseif($st == 'Turun dari Bupati') $cls = 'info text-dark';
-                                        elseif($st == 'Disposisi') $cls = 'primary';
-                                    @endphp
-
-                                    <span class="badge bg-{{ $cls }} border border-{{ $cls }} mb-1">
-                                        {{ $st }}
-                                    </span>
-
-                                    <div class="small mt-1" style="font-size: 0.75rem;">
-                                        @if($st == 'Disposisi' && $surat->tgl_disposisi)
-                                            <div class="text-primary fw-bold">
-                                                <i class="fas fa-share me-1"></i> {{ \Carbon\Carbon::parse($surat->tgl_disposisi)->format('d/m/y') }}
-                                            </div>
+                                        @endif
+                                        @if($surat->status == 'Naik ke Bupati')
+                                        <button type="button"
+                                                onclick="document.getElementById('modalTurun{{ $surat->id }}').classList.remove('hidden')"
+                                                class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 w-full text-left">
+                                            <i class="fas fa-arrow-circle-down text-green-500"></i> Turun dari Bupati
+                                        </button>
+                                        @endif
                                         @endif
 
-                                        @if($st == 'Naik ke Bupati' && $surat->tgl_naik_bupati)
-                                            <div class="text-dark fw-bold border-top pt-1 mt-1">
-                                                <i class="fas fa-arrow-up me-1"></i> {{ \Carbon\Carbon::parse($surat->tgl_naik_bupati)->format('d/m/y') }}
-                                            </div>
-                                            @if($surat->no_npknd)
-                                                <div class="text-muted fst-italic">NPKND: {{ $surat->no_npknd }}</div>
-                                            @endif
-                                        @endif
-
-                                        @if($st == 'Turun dari Bupati' && $surat->tgl_turun_bupati)
-                                            <div class="text-success fw-bold border-top pt-1 mt-1">
-                                                <i class="fas fa-arrow-down me-1"></i> {{ \Carbon\Carbon::parse($surat->tgl_turun_bupati)->format('d/m/y') }}
-                                            </div>
-                                            @if($surat->tgl_naik_bupati)
-                                                <div class="text-muted" style="font-size: 0.65rem;">(Naik: {{ \Carbon\Carbon::parse($surat->tgl_naik_bupati)->format('d/m') }})</div>
-                                            @endif
+                                        @if(in_array(auth()->user()->role, ['admin','super_admin']))
+                                        <div class="border-t border-slate-100 my-1"></div>
+                                        <a href="{{ route('surat-masuk.edit', $surat->id) }}"
+                                           class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50">
+                                            <i class="fas fa-edit text-amber-500"></i> Edit Data
+                                        </a>
+                                        <button type="button"
+                                                onclick="document.getElementById('modalHapus{{ $surat->id }}').classList.remove('hidden')"
+                                                class="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 w-full text-left">
+                                            <i class="fas fa-trash"></i> Hapus Surat
+                                        </button>
                                         @endif
                                     </div>
-                                </td>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
 
-                                <td class="text-center text-nowrap">
-                                    @if($surat->status == 'Menunggu Validasi' && in_array(auth()->user()->role, ['admin', 'kabag', 'super_admin']))
-                                        <div class="d-flex gap-1 mb-1">
-                                            <form action="{{ route('surat-masuk.validasi', $surat->id) }}" method="POST" onsubmit="return confirm('Validasi OK dan siap disposisi?')">
-                                                @csrf @method('PATCH')
-                                                <input type="hidden" name="status_verifikasi" value="Setuju">
-                                                <button type="submit" class="btn btn-success btn-sm" title="Setujui/Validasi">
-                                                    <i class="fas fa-check"></i>
-                                                </button>
-                                            </form>
-                                            <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalTolak{{ $surat->id }}" title="Tolak Surat">
-                                                <i class="fas fa-times"></i>
-                                            </button>
+                    {{-- Preview Modal --}}
+                    @if($surat->file_scan_path)
+                    <div id="previewModal{{ $surat->id }}"
+                         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+                         onclick="if(event.target===this)this.classList.add('hidden')">
+                        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col" onclick="event.stopPropagation()">
+                            <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                                <span class="font-semibold text-slate-700">File Surat — {{ $surat->no_agenda }}</span>
+                                <button onclick="document.getElementById('previewModal{{ $surat->id }}').classList.add('hidden')"
+                                        class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                            </div>
+                            <div class="flex-1 p-2">
+                                <iframe src="{{ asset('storage/' . $surat->file_scan_path) }}" class="w-full h-full rounded-xl border-0"></iframe>
+                            </div>
+                        </div>
+                    </div>
+                    @endif
 
-                                        </div>
-                                    @endif
-
-                                    @if($surat->status == 'Disetujui')
-                                    <a href="{{ route('surat-masuk.cetak', $surat->id) }}" target="_blank" class="btn btn-warning btn-sm mb-1 text-dark" title="Cetak Tanda Terima">
-                                        <i class="fas fa-print"></i>
-                                    </a>
-                                    @endif
-
-                                    <div class="dropdown d-inline-block">
-                                        <button class="btn btn-secondary btn-sm dropdown-toggle mb-1" type="button" data-bs-toggle="dropdown">Opsi</button>
-                                        <ul class="dropdown-menu dropdown-menu-end shadow">
-
-                                            <li><a class="dropdown-item" href="{{ route('surat-masuk.show', $surat->id) }}">Detail & Disposisi</a></li>
-                                            
-                                            @if(in_array(auth()->user()->role, ['admin', 'kabag', 'super_admin']))
-                                                <li><hr class="dropdown-divider"></li>
-
-                                                @if($surat->status != 'Naik ke Bupati' && $surat->status != 'Turun dari Bupati' && $surat->status != 'Ditolak')
-                                                    <li>
-                                                        <button type="button" class="dropdown-item fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#modalNaik{{ $surat->id }}">
-                                                            <i class="fas fa-arrow-circle-up text-danger me-2"></i> Naik ke Bupati
-                                                        </button>
-                                                    </li>
-                                                @endif
-
-                                                @if($surat->status == 'Naik ke Bupati')
-                                                    <li>
-                                                        <button type="button" class="dropdown-item fw-bold text-dark" data-bs-toggle="modal" data-bs-target="#modalTurun{{ $surat->id }}">
-                                                            <i class="fas fa-arrow-circle-down text-success me-2"></i> Turun dari Bupati
-                                                        </button>
-                                                    </li>
-                                                @endif
-                                            @endif
-
-                                            @if(in_array(auth()->user()->role, ['admin', 'super_admin']))
-                                                <li><hr class="dropdown-divider"></li>
-                                                <li><a class="dropdown-item" href="{{ route('surat-masuk.edit', $surat->id) }}"><i class="fas fa-edit text-warning me-2"></i> Edit Data</a></li>
-                                                <li>
-                                                    <form action="{{ route('surat-masuk.destroy', $surat->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus surat ini? Data disposisi juga akan terhapus.')">
-                                                        @csrf @method('DELETE')
-                                                        <button type="submit" class="dropdown-item text-danger"><i class="fas fa-trash me-2"></i> Hapus Surat</button>
-                                                    </form>
-                                                </li>
-                                            @endif
-                                        </ul>
+                    {{-- Modal Naik Bupati --}}
+                    <div id="modalNaik{{ $surat->id }}"
+                         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                         onclick="if(event.target===this)this.classList.add('hidden')">
+                        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onclick="event.stopPropagation()">
+                            <form action="{{ route('surat.naik_bupati', $surat->id) }}" method="POST">
+                                @csrf
+                                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fas fa-file-signature text-red-500"></i> Naik ke Bupati
+                                    </h3>
+                                    <button type="button" onclick="document.getElementById('modalNaik{{ $surat->id }}').classList.add('hidden')"
+                                            class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                                </div>
+                                <div class="p-5 space-y-3">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Nomor NPKND <span class="text-red-500">*</span></label>
+                                        <input type="text" name="no_npknd" required placeholder="Nomor NPKND"
+                                               class="w-full border-slate-300 rounded-xl text-sm focus:ring-blue-500 focus:border-blue-500">
                                     </div>
-
-                                    <div class="modal fade" id="modalTolak{{ $surat->id }}" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-danger text-white"><h5 class="modal-title">Tolak Surat</h5><button class="btn-close" data-bs-dismiss="modal"></button></div>
-                                                <form action="{{ route('surat-masuk.validasi', $surat->id) }}" method="POST">
-                                                    @csrf @method('PATCH')
-                                                    <div class="modal-body text-start" style="white-space: normal;">
-                                                        <input type="hidden" name="status_verifikasi" value="Tolak">
-                                                        <label class="form-label">Alasan Penolakan:</label>
-                                                        <textarea name="alasan_tolak" class="form-control" rows="3" required placeholder="Wajib diisi..."></textarea>
-                                                    </div>
-                                                    <div class="modal-footer"><button type="submit" class="btn btn-danger">Tolak Surat</button></div>
-                                                </form>
-                                            </div>
-                                        </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Naik <span class="text-red-500">*</span></label>
+                                        <input type="date" name="tgl_naik_bupati" value="{{ date('Y-m-d') }}" required
+                                               class="w-full border-slate-300 rounded-xl text-sm focus:ring-blue-500 focus:border-blue-500">
                                     </div>
+                                </div>
+                                <div class="flex justify-end gap-2 px-5 pb-5">
+                                    <button type="button" onclick="document.getElementById('modalNaik{{ $surat->id }}').classList.add('hidden')"
+                                            class="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Batal</button>
+                                    <button type="submit" class="px-4 py-2 text-sm rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700">
+                                        Proses Naik
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
-                                    <div class="modal fade" id="modalNaik{{ $surat->id }}" tabindex="-1" data-bs-backdrop="static">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content border-0 shadow-lg">
-                                                <div class="modal-header bg-danger text-white">
-                                                    <h5 class="modal-title"><i class="fas fa-file-signature me-2"></i>Naik ke Bupati</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <form action="{{ route('surat.naik_bupati', $surat->id) }}" method="POST">
-                                                    @csrf
-                                                    <div class="modal-body bg-light text-start">
-                                                        <div class="form-floating mb-3">
-                                                            <input type="text" name="no_npknd" class="form-control fw-bold" id="npknd{{ $surat->id }}" placeholder="Nomor NPKND" required>
-                                                            <label for="npknd{{ $surat->id }}">Nomor NPKND</label>
-                                                        </div>
-                                                        <div class="form-floating">
-                                                            <input type="date" name="tgl_naik_bupati" class="form-control" id="tglNaik{{ $surat->id }}" value="{{ date('Y-m-d') }}" required>
-                                                            <label for="tglNaik{{ $surat->id }}">Tanggal Naik</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer bg-white">
-                                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-danger fw-bold">Proses Naik</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
+                    {{-- Modal Turun Bupati --}}
+                    <div id="modalTurun{{ $surat->id }}"
+                         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+                         onclick="if(event.target===this)this.classList.add('hidden')">
+                        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm" onclick="event.stopPropagation()">
+                            <form action="{{ route('surat.turun_bupati', $surat->id) }}" method="POST">
+                                @csrf
+                                <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                                    <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                                        <i class="fas fa-check-double text-green-500"></i> Turun dari Bupati
+                                    </h3>
+                                    <button type="button" onclick="document.getElementById('modalTurun{{ $surat->id }}').classList.add('hidden')"
+                                            class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                                </div>
+                                <div class="p-5 space-y-3">
+                                    <div class="bg-slate-50 rounded-xl p-3">
+                                        <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Nomor NPKND</p>
+                                        <p class="text-lg font-bold text-slate-800">{{ $surat->no_npknd ?? '-' }}</p>
                                     </div>
-
-                                    <div class="modal fade" id="modalTurun{{ $surat->id }}" tabindex="-1" data-bs-backdrop="static">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content border-0 shadow-lg">
-                                                <div class="modal-header bg-success text-white">
-                                                    <h5 class="modal-title"><i class="fas fa-check-double me-2"></i>Turun dari Bupati</h5>
-                                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                                                </div>
-                                                <form action="{{ route('surat.turun_bupati', $surat->id) }}" method="POST">
-                                                    @csrf
-                                                    <div class="modal-body bg-light text-start">
-                                                        <div class="card card-body border-success mb-3 bg-white">
-                                                            <label class="small text-muted fw-bold text-uppercase">Nomor NPKND (Data Naik)</label>
-                                                            <div class="fs-4 fw-bold text-dark">{{ $surat->no_npknd ?? '-' }}</div>
-                                                        </div>
-                                                        <div class="form-floating">
-                                                            <input type="date" name="tgl_turun_bupati" class="form-control" id="tglTurun{{ $surat->id }}" value="{{ date('Y-m-d') }}" required>
-                                                            <label for="tglTurun{{ $surat->id }}">Tanggal Turun / Selesai</label>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer bg-white">
-                                                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-                                                        <button type="submit" class="btn btn-success fw-bold">Simpan & Selesai</button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-slate-700 mb-1">Tanggal Turun <span class="text-red-500">*</span></label>
+                                        <input type="date" name="tgl_turun_bupati" value="{{ date('Y-m-d') }}" required
+                                               class="w-full border-slate-300 rounded-xl text-sm focus:ring-blue-500 focus:border-blue-500">
                                     </div>
+                                </div>
+                                <div class="flex justify-end gap-2 px-5 pb-5">
+                                    <button type="button" onclick="document.getElementById('modalTurun{{ $surat->id }}').classList.add('hidden')"
+                                            class="px-4 py-2 text-sm rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Batal</button>
+                                    <button type="submit" class="px-4 py-2 text-sm rounded-lg bg-green-600 text-white font-semibold hover:bg-green-700">
+                                        Simpan & Selesai
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
 
-                                </td>
-                            </tr>
-                        @empty
-                            <tr><td colspan="7" class="text-center py-5 text-muted">Data tidak ditemukan.</td></tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="mt-3 d-flex justify-content-end">{{ $surat_masuk->links() }}</div>
+                    {{-- Modal Konfirmasi Hapus --}}
+                    <form id="formHapus{{ $surat->id }}" action="{{ route('surat-masuk.destroy', $surat->id) }}" method="POST" class="hidden">
+                        @csrf @method('DELETE')
+                    </form>
+                    <div id="modalHapus{{ $surat->id }}"
+                         class="hidden fixed inset-0 z-50 flex items-center justify-center p-4"
+                         onclick="if(event.target===this)this.classList.add('hidden')">
+                        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+                        <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden" onclick="event.stopPropagation()">
+                            <div class="bg-gradient-to-br from-red-50 to-rose-50 px-6 pt-8 pb-5 text-center border-b border-red-100">
+                                <div class="w-16 h-16 bg-red-100 border-4 border-red-200 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner">
+                                    <i class="fas fa-trash-alt text-red-500 text-2xl"></i>
+                                </div>
+                                <h3 class="text-lg font-bold text-slate-800">Hapus Surat?</h3>
+                                <p class="text-sm text-slate-500 mt-1">Tindakan ini <span class="font-semibold text-red-600">tidak dapat dibatalkan</span></p>
+                            </div>
+                            <div class="px-6 py-4">
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i class="bi bi-envelope-fill text-blue-500 text-xs"></i>
+                                        <span class="text-sm font-bold text-slate-700">{{ $surat->no_agenda }}</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">{{ $surat->asal_instansi }}</p>
+                                    <p class="text-xs text-slate-400 truncate">{{ Str::limit($surat->perihal, 55) }}</p>
+                                </div>
+                                <div class="flex items-start gap-2 mt-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">
+                                    <i class="fas fa-exclamation-triangle text-red-400 text-xs mt-0.5 flex-shrink-0"></i>
+                                    <p class="text-xs text-red-600">Semua data termasuk file scan, lampiran, dan riwayat tracking akan dihapus permanen.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 px-6 pb-6">
+                                <button type="button"
+                                        onclick="document.getElementById('modalHapus{{ $surat->id }}').classList.add('hidden')"
+                                        class="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors">
+                                    Batal
+                                </button>
+                                <button type="button"
+                                        onclick="document.getElementById('formHapus{{ $surat->id }}').submit()"
+                                        class="flex-1 px-4 py-2.5 text-sm font-semibold rounded-xl bg-red-600 text-white hover:bg-red-700 active:bg-red-800 transition-colors flex items-center justify-center gap-2 shadow-sm shadow-red-200">
+                                    <i class="fas fa-trash"></i> Ya, Hapus
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-4 py-12 text-center text-slate-400">
+                            <i class="bi bi-envelope text-4xl block mb-2 opacity-30"></i>
+                            Data surat masuk tidak ditemukan.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        <div class="p-4 border-t border-slate-100 flex justify-end">
+            {{ $surat_masuk->links() }}
         </div>
     </div>
 </div>

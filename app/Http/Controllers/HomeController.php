@@ -17,6 +17,11 @@ class HomeController extends Controller
 
     public function index()
     {
+        // Tamu hanya boleh di halaman surat masuk
+        if (auth()->user()->role === 'tamu') {
+            return redirect()->route('surat-masuk.index');
+        }
+
         $totalSuratMasuk  = SuratMasuk::count();
         $totalSuratKeluar = SuratKeluar::count();
         $totalDisposisi   = Disposisi::count();

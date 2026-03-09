@@ -1,149 +1,127 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-4"> 
-    
-    <div class="row mb-4 mt-4">
-        <div class="col-md-12">
-            <h2>Dashboard</h2>
-            <p class="text-muted">Selamat datang, <strong>{{ Auth::user()->name }}</strong>!</p>
-        </div>
+<div class="space-y-6">
+
+    {{-- Page Header --}}
+    <div>
+        <h1 class="text-2xl font-bold text-slate-800">Dashboard</h1>
+        <p class="text-slate-500 text-sm mt-1">Selamat datang, <span class="font-semibold text-blue-600">{{ Auth::user()->name }}</span>!</p>
     </div>
 
-    <div class="row">
-        <div class="col-md-3">
-            <div class="card text-white bg-primary mb-3 h-100 shadow-sm">
-                <div class="card-header">Surat Masuk</div>
-                <div class="card-body">
-                    <h1 class="card-title">{{ $totalSuratMasuk }}</h1>
-                    <p class="card-text">Total surat diterima</p>
-                    <a href="{{ route('surat-masuk.index') }}" class="text-white text-decoration-none stretched-link">Lihat Detail &rarr;</a>
-                </div>
-            </div>
-        </div>
+    {{-- Stats Cards --}}
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
 
-        <div class="col-md-3">
-            <div class="card text-white bg-success mb-3 h-100 shadow-sm">
-                <div class="card-header">Surat Keluar</div>
-                <div class="card-body">
-                    <h1 class="card-title">{{ $totalSuratKeluar }}</h1>
-                    <p class="card-text">Total surat dikirim</p>
-                    <a href="{{ route('surat-keluar.index') }}" class="text-white text-decoration-none stretched-link">Lihat Detail &rarr;</a>
-                </div>
+        {{-- Surat Masuk --}}
+        <a href="{{ route('surat-masuk.index') }}"
+           class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-md transition-shadow group">
+            <div class="w-14 h-14 rounded-2xl bg-blue-100 flex items-center justify-center flex-shrink-0 group-hover:bg-blue-600 transition-colors">
+                <i class="bi bi-envelope-check-fill text-blue-600 text-2xl group-hover:text-white transition-colors"></i>
             </div>
-        </div>
+            <div>
+                <p class="text-3xl font-bold text-slate-800">{{ $totalSuratMasuk }}</p>
+                <p class="text-sm text-slate-500 font-medium">Surat Masuk</p>
+                <p class="text-xs text-blue-500 mt-0.5">Total diterima</p>
+            </div>
+        </a>
 
-        <div class="col-md-3">
-            <div class="card text-dark bg-warning mb-3 h-100 shadow-sm">
-                <div class="card-header">Total Disposisi</div>
-                <div class="card-body">
-                    <h1 class="card-title">{{ $totalDisposisi }}</h1>
-                    <p class="card-text">Instruksi diteruskan</p>
-                    @if(auth()->user()->role == 'admin' || auth()->user()->role == 'super_admin')
-                         <a href="{{ route('disposisi.monitoring') }}" class="text-dark text-decoration-none stretched-link">Lihat Monitoring &rarr;</a>
-                    @endif
-                </div>
+        {{-- Surat Keluar --}}
+        @if(in_array(auth()->user()->role, ['admin','operator']))
+        <a href="{{ route('surat-keluar.index') }}"
+           class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-md transition-shadow group">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center flex-shrink-0 group-hover:bg-emerald-600 transition-colors">
+                <i class="bi bi-send-fill text-emerald-600 text-2xl group-hover:text-white transition-colors"></i>
             </div>
-        </div>
-
-        <div class="col-md-3">
-            <div class="card text-white bg-secondary mb-3 h-100 shadow-sm">
-                <div class="card-header">Pengguna Aktif</div>
-                <div class="card-body">
-                    <h1 class="card-title">{{ $totalUser }}</h1>
-                    <p class="card-text">Admin & Staff</p>
-                </div>
+            <div>
+                <p class="text-3xl font-bold text-slate-800">{{ $totalSuratKeluar }}</p>
+                <p class="text-sm text-slate-500 font-medium">Surat Keluar</p>
+                <p class="text-xs text-emerald-500 mt-0.5">Total dikirim</p>
             </div>
-        </div>
-
-        @if(auth()->user()->role != 'admin' && auth()->user()->role != 'super_admin')
-        <div class="col-md-3 mt-3">
-            <div class="card text-white bg-info mb-3 h-100 shadow-sm">
-                <div class="card-header">Inbox Disposisi</div>
-                <div class="card-body">
-                    <div class="sb-nav-link-icon mb-2"><i class="bi bi-inbox fs-1"></i></div>
-                    <p class="card-text">Cek Surat Masuk untuk Anda</p>
-                    <a href="{{ route('inbox') }}" class="text-white text-decoration-none stretched-link">Buka Inbox &rarr;</a>
-                </div>
-            </div>
-        </div>
+        </a>
         @endif
 
-        @if(auth()->user()->role == 'admin' || auth()->user()->role == 'super_admin')
-        <div class="col-md-3 mt-3">
-            <div class="card text-white bg-dark mb-3 h-100 shadow-sm">
-                <div class="card-header">Laporan</div>
-                <div class="card-body">
-                    <div class="sb-nav-link-icon mb-2"><i class="bi bi-file-earmark-text fs-1"></i></div>
-                    <p class="card-text">Rekap Laporan</p>
-                    <a href="{{ route('laporan.index') }}" class="text-white text-decoration-none stretched-link">Buka Laporan &rarr;</a>
-                </div>
+        {{-- Disposisi --}}
+        <a href="{{ route('disposisi.monitoring') }}"
+           class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-md transition-shadow group">
+            <div class="w-14 h-14 rounded-2xl bg-amber-100 flex items-center justify-center flex-shrink-0 group-hover:bg-amber-500 transition-colors">
+                <i class="bi bi-diagram-3-fill text-amber-500 text-2xl group-hover:text-white transition-colors"></i>
             </div>
-        </div>
+            <div>
+                <p class="text-3xl font-bold text-slate-800">{{ $totalDisposisi }}</p>
+                <p class="text-sm text-slate-500 font-medium">Total Disposisi</p>
+                <p class="text-xs text-amber-500 mt-0.5">Instruksi diteruskan</p>
+            </div>
+        </a>
+
+        {{-- Users (admin only) / Inbox (others) --}}
+        @if(in_array(auth()->user()->role, ['admin','super_admin']))
+        <a href="{{ route('users.index') }}"
+           class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-md transition-shadow group">
+            <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center flex-shrink-0 group-hover:bg-slate-700 transition-colors">
+                <i class="bi bi-people-fill text-slate-600 text-2xl group-hover:text-white transition-colors"></i>
+            </div>
+            <div>
+                <p class="text-3xl font-bold text-slate-800">{{ $totalUser }}</p>
+                <p class="text-sm text-slate-500 font-medium">Pengguna Aktif</p>
+                <p class="text-xs text-slate-400 mt-0.5">Admin & Staff</p>
+            </div>
+        </a>
+        @else
+        <a href="{{ route('inbox') }}"
+           class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center gap-4 hover:shadow-md transition-shadow group">
+            <div class="w-14 h-14 rounded-2xl bg-cyan-100 flex items-center justify-center flex-shrink-0 group-hover:bg-cyan-600 transition-colors">
+                <i class="bi bi-inbox-fill text-cyan-600 text-2xl group-hover:text-white transition-colors"></i>
+            </div>
+            <div>
+                <p class="text-3xl font-bold text-slate-800">{{ $totalUser }}</p>
+                <p class="text-sm text-slate-500 font-medium">Inbox</p>
+                <p class="text-xs text-cyan-500 mt-0.5">Disposisi masuk</p>
+            </div>
+        </a>
         @endif
-    </div> 
 
-    @if(auth()->user()->role == 'super_admin' || auth()->user()->email == 'admin@malangkab.go.id')
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card border-0 shadow-sm border-start border-primary border-4">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-center justify-content-between">
-                        
-                        <div class="d-flex align-items-center">
-                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3 text-primary">
-                                <i class="bi bi-database-gear fs-3"></i>
-                            </div>
-                            <div>
-                                <h6 class="fw-bold mb-1 text-dark">Pemeliharaan Data Sistem</h6>
-                                <p class="text-muted small mb-0">Backup data secara rutin atau pulihkan data jika terjadi kesalahan.</p>
-                            </div>
-                        </div>
+    </div>
 
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('backup.db') }}" class="btn btn-outline-success fw-bold px-3" onclick="return confirm('Backup database sekarang?')">
-                                <i class="bi bi-cloud-download me-2"></i>Backup
-                            </a>
+    {{-- Quick Actions --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+        <h2 class="text-base font-bold text-slate-700 mb-4">Aksi Cepat</h2>
+        <div class="flex flex-wrap gap-3">
 
-                            <button type="button" class="btn btn-outline-danger fw-bold px-3" data-bs-toggle="modal" data-bs-target="#modalRestore">
-                                <i class="bi bi-cloud-upload me-2"></i>Restore
-                            </button>
-                        </div>
+            @if(in_array(auth()->user()->role, ['admin','operator','tamu']))
+            <a href="{{ route('surat-masuk.create') }}"
+               class="flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors shadow-sm">
+                <i class="fas fa-plus"></i> Input Surat Masuk
+            </a>
+            @endif
 
-                    </div>
-                </div>
-            </div>
+            <a href="{{ route('surat-masuk.index') }}"
+               class="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
+                <i class="bi bi-envelope-check-fill text-blue-500"></i> Lihat Surat Masuk
+            </a>
+
+            @if(in_array(auth()->user()->role, ['admin','operator','kabag','kasubag','staf']))
+            <a href="{{ route('inbox') }}"
+               class="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
+                <i class="bi bi-inbox-fill text-cyan-500"></i> Buka Inbox
+            </a>
+            @endif
+
+            @if(in_array(auth()->user()->role, ['admin','operator']))
+            <a href="{{ route('surat-keluar.index') }}"
+               class="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
+                <i class="bi bi-send-fill text-emerald-500"></i> Surat Keluar
+            </a>
+            @endif
+
+            @if(auth()->user()->role === 'admin')
+            <a href="{{ route('laporan.index') }}"
+               class="flex items-center gap-2 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors">
+                <i class="bi bi-bar-chart-fill text-purple-500"></i> Laporan
+            </a>
+            @endif
+
         </div>
     </div>
 
-    <div class="modal fade" id="modalRestore" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill me-2"></i>Restore Database</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <form action="{{ route('restore.db') }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    <div class="modal-body">
-                        <div class="alert alert-warning small">
-                            <strong>PERHATIAN!</strong> Proses ini akan menimpa seluruh data saat ini dengan data dari file backup. Data yang ditimpa tidak bisa dikembalikan.
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Pilih File Backup (.sql)</label>
-                            <input type="file" name="file_backup" class="form-control" required accept=".sql">
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger">Ya, Pulihkan Database</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-    @endif
-
-    <!-- Footer dihapus sesuai permintaan -->
 </div>
 @endsection

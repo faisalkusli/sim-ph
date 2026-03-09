@@ -1,154 +1,194 @@
-<nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
-    <div class="sb-sidenav-menu">
-        <div class="nav pt-4"> 
-            <div class="d-flex flex-column align-items-center mb-4">
-                <div class="p-2 bg-white rounded-circle shadow-lg mb-3 d-flex justify-content-center align-items-center" style="width: 80px; height: 80px;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d9/Logo_Kabupaten_Malang_-_Seal_of_Malang_Regency.svg" alt="Logo" style="width: 50px;">
-                </div>
-                
-                <div class="text-center text-white fw-bold lh-sm px-2">
-                    <div style="font-size: 1.2rem; letter-spacing: 1px;">SISTEM</div>
-                    <div style="font-size: 1.2rem; letter-spacing: 1px;">PERSURATAN</div>
-                    <div style="font-size: 1.2rem; letter-spacing: 1px;">DIGITAL</div>
-                </div>
-            </div>
+@php
+    $role = auth()->user()->role;
+    $currentPath = request()->path();
 
-            <div class="mx-3 border-top border-secondary opacity-25 mb-3"></div>
-            <div class="sb-sidenav-menu-heading">Utama</div>
-            
-            {{-- Sidebar rules --}}
-            @php $role = auth()->user()->role; @endphp
+    function navLink($href, $icon, $label, $active) {
+        $base = 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group w-full mb-1 ';
+        $cls  = $active
+            ? $base . 'nav-link-active'
+            : $base . 'text-slate-400 hover:text-white hover:bg-slate-800';
+        return "<a href=\"{$href}\" class=\"{$cls}\"><i class=\"{$icon} text-base w-5 text-center flex-shrink-0\"></i><span>{$label}</span></a>";
+    }
+@endphp
 
-            @if($role == 'tamu')
-                <a class="nav-link {{ Request::is('surat-masuk*') ? 'active' : '' }}" href="{{ route('surat-masuk.index') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-envelope-check-fill"></i></div>
-                    Surat Masuk
-                </a>
-                <a class="nav-link {{ Request::is('surat-masuk/create') ? 'active' : '' }}" href="{{ route('surat-masuk.create') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-plus"></i></div>
-                    Input Surat
-                </a>
-                <a class="nav-link {{ Request::is('produk-hukum*') ? 'active' : '' }}" href="{{ route('produk-hukum.index') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-gavel"></i></div>
-                    Produk Hukum
-                </a>
-            @elseif($role == 'operator')
-                <a class="nav-link {{ Request::is('surat-masuk*') ? 'active' : '' }}" href="{{ route('surat-masuk.index') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-envelope-check-fill"></i></div>
-                    Surat Masuk
-                </a>
-                <a class="nav-link {{ Request::is('surat-masuk/create') ? 'active' : '' }}" href="{{ route('surat-masuk.create') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-plus"></i></div>
-                    Input Surat
-                </a>
-                <a class="nav-link {{ Request::is('produk-hukum*') ? 'active' : '' }}" href="{{ route('produk-hukum.index') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-gavel"></i></div>
-                    Produk Hukum
-                </a>
-                <a class="nav-link {{ Request::is('pengambilan*') ? 'active' : '' }}" href="{{ route('pengambilan.index') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-hand-holding"></i></div>
-                    Pengambilan Produk Hukum
-                </a>
-                <a class="nav-link {{ Request::is('disposisi.monitoring') ? 'active' : '' }}" href="{{ route('disposisi.monitoring') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-diagram-3-fill"></i></div>
-                    Monitoring Disposisi
-                </a>
-            @elseif(in_array($role, ['kabag','kasubag','staf','staff']))
-                <a class="nav-link {{ Request::is('home') ? 'active' : '' }}" href="{{ route('home') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-grid-1x2-fill"></i></div> Dashboard
-                </a>
-                <a class="nav-link {{ Request::is('surat-masuk*') ? 'active' : '' }}" href="{{ route('surat-masuk.index') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-envelope-check-fill"></i></div>
-                    Surat Masuk
-                </a>
-                @if($role != 'staf' && $role != 'staff')
-                <a class="nav-link {{ Request::is('surat-keluar*') ? 'active' : '' }}" href="{{ route('surat-keluar.index') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-send-fill"></i></div>
-                    Surat Keluar
-                </a>
-                <a class="nav-link {{ Request::is('produk-hukum*') ? 'active' : '' }}" href="{{ route('produk-hukum.index') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-gavel"></i></div>
-                    Produk Hukum
-                </a>
-                @endif
-                <a class="nav-link {{ Request::is('pengambilan*') ? 'active' : '' }}" href="{{ route('pengambilan.index') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-hand-holding"></i></div>
-                    Pengambilan Produk Hukum
-                </a>
-                <a class="nav-link {{ Request::is('disposisi.monitoring') ? 'active' : '' }}" href="{{ route('disposisi.monitoring') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-diagram-3-fill"></i></div>
-                    Disposisi
-                </a>
-                <a class="nav-link {{ Request::is('inbox*') ? 'active' : '' }}" href="{{ route('inbox') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-inbox-fill"></i></div>
-                    Inbox
-                </a>
-            @elseif($role == 'admin')
-                <a class="nav-link {{ Request::is('home') ? 'active' : '' }}" href="{{ route('home') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-grid-1x2-fill"></i></div> Dashboard
-                </a>
-                <a class="nav-link {{ Request::is('surat-masuk*') ? 'active' : '' }}" href="{{ route('surat-masuk.index') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-envelope-check-fill"></i></div>
-                    Surat Masuk
-                </a>
-                <a class="nav-link {{ Request::is('surat-keluar*') ? 'active' : '' }}" href="{{ route('surat-keluar.index') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-send-fill"></i></div>
-                    Surat Keluar
-                </a>
-                <a class="nav-link {{ Request::is('produk-hukum*') ? 'active' : '' }}" href="{{ route('produk-hukum.index') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-gavel"></i></div>
-                    Produk Hukum
-                </a>
-                <a class="nav-link {{ Request::is('pengambilan*') ? 'active' : '' }}" href="{{ route('pengambilan.index') }}">
-                    <div class="sb-nav-link-icon"><i class="fas fa-hand-holding"></i></div>
-                    Pengambilan Produk Hukum
-                </a>
-                <a class="nav-link {{ Request::is('disposisi.monitoring') ? 'active' : '' }}" href="{{ route('disposisi.monitoring') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-diagram-3-fill"></i></div>
-                    Disposisi
-                </a>
-                <a class="nav-link {{ Request::is('inbox*') ? 'active' : '' }}" href="{{ route('inbox') }}">
-                    <div class="sb-nav-link-icon"><i class="bi bi-inbox-fill"></i></div>
-                    Inbox
-                </a>
-                {{-- Menu pencarian dihapus --}}
-                <div class="sb-sidenav-menu-heading">Pengaturan</div>
-                @php
-                    $isActiveSetting = Request::is('users*') || 
-                                       Request::is('laporan*') || 
-                                       Request::is('system/backup*');
-                @endphp
-                <a class="nav-link {{ $isActiveSetting ? '' : 'collapsed' }}" href="#" data-bs-toggle="collapse" data-bs-target="#collapsePengaturan" aria-expanded="{{ $isActiveSetting ? 'true' : 'false' }}" aria-controls="collapsePengaturan">
-                    <div class="sb-nav-link-icon"><i class="bi bi-gear-wide-connected"></i></div>
-                    Administrasi
-                    <div class="sb-sidenav-collapse-arrow"><i class="bi bi-chevron-down"></i></div>
-                </a>
-                <div class="collapse {{ $isActiveSetting ? 'show' : '' }}" id="collapsePengaturan" data-bs-parent="#sidenavAccordion">
-                    <nav class="sb-sidenav-menu-nested nav ms-3"> 
-                        <a class="nav-link {{ Request::is('users*') ? 'active' : '' }}" href="{{ route('users.index') }}">
-                            <span class="sb-nav-link-icon"><i class="bi bi-people"></i></span> User
-                        </a>
-                        <a class="nav-link {{ Request::is('laporan*') ? 'active' : '' }}" href="{{ route('laporan.index') }}">
-                            <span class="sb-nav-link-icon"><i class="bi bi-bar-chart"></i></span> Laporan
-                        </a>
-                        <div class="my-1 border-top border-secondary opacity-25" style="width: 90%;"></div>
-                        <div class="small text-muted ms-3 mt-2 mb-1" style="font-size: 0.65rem; letter-spacing: 1px;">DATA & SYSTEM</div>
-                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#exportModal">
-                            <span class="sb-nav-link-icon"><i class="bi bi-file-earmark-spreadsheet-fill text-success"></i></span> Export Excel
-                        </a>
-                        <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#importModal">
-                            <span class="sb-nav-link-icon"><i class="bi bi-upload text-info"></i></span> Import Excel
-                        </a>
-                        <a class="nav-link text-danger {{ Request::routeIs('backup.*') ? 'active' : '' }}" href="{{ route('backup.index') }}">
-                            <div class="sb-nav-link-icon"><i class="fas fa-database text-danger"></i></div>
-                            Backup & Restore
-                        </a>
-                    </nav>
-                </div>
-            @endif
+{{-- ================================================================ --}}
+{{-- TAMU: Hanya Surat Masuk (milik sendiri) + Input Surat            --}}
+{{-- ================================================================ --}}
+@if($role == 'tamu')
 
-            <!-- User card dan tombol Sign Out dihapus sesuai permintaan -->
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mb-2">Utama</p>
+
+    {!! navLink(route('surat-masuk.index'), 'bi bi-envelope-check-fill', 'Surat Masuk',
+        request()->is('surat-masuk') && !request()->is('surat-masuk/create')) !!}
+
+    {!! navLink(route('surat-masuk.create'), 'fas fa-plus', 'Input Surat Baru',
+        request()->is('surat-masuk/create')) !!}
+
+
+{{-- ================================================================ --}}
+{{-- OPERATOR: Semua fitur KECUALI menu Administrasi                  --}}
+{{-- ================================================================ --}}
+@elseif($role == 'operator')
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mb-2">Utama</p>
+
+    {!! navLink(route('home'), 'bi bi-grid-1x2-fill', 'Dashboard', request()->is('home')) !!}
+
+    {!! navLink(route('surat-masuk.index'), 'bi bi-envelope-check-fill', 'Surat Masuk',
+        request()->is('surat-masuk*') && !request()->is('surat-masuk/create')) !!}
+
+    {!! navLink(route('surat-masuk.create'), 'fas fa-plus', 'Input Surat',
+        request()->is('surat-masuk/create')) !!}
+
+    {!! navLink(route('surat-keluar.index'), 'bi bi-send-fill', 'Surat Keluar',
+        request()->is('surat-keluar*')) !!}
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mt-4 mb-2">Referensi</p>
+
+    {!! navLink(route('produk-hukum.index'), 'fas fa-gavel', 'Produk Hukum',
+        request()->is('produk-hukum*')) !!}
+
+    {!! navLink(route('pengambilan.index'), 'fas fa-hand-holding', 'Pengambilan Produk Hukum',
+        request()->is('pengambilan*')) !!}
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mt-4 mb-2">Alur Kerja</p>
+
+    {!! navLink(route('disposisi.monitoring'), 'bi bi-diagram-3-fill', 'Disposisi',
+        request()->is('disposisi*')) !!}
+
+    {!! navLink(route('inbox'), 'bi bi-inbox-fill', 'Inbox',
+        request()->is('inbox*')) !!}
+
+
+{{-- ================================================================ --}}
+{{-- KABAG & KASUBAG: Surat Masuk + Disposisi + Inbox                 --}}
+{{-- ================================================================ --}}
+@elseif(in_array($role, ['kabag', 'kasubag']))
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mb-2">Utama</p>
+
+    {!! navLink(route('home'), 'bi bi-grid-1x2-fill', 'Dashboard', request()->is('home')) !!}
+
+    {!! navLink(route('surat-masuk.index'), 'bi bi-envelope-check-fill', 'Surat Masuk',
+        request()->is('surat-masuk*')) !!}
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mt-4 mb-2">Alur Kerja</p>
+
+    {!! navLink(route('disposisi.monitoring'), 'bi bi-diagram-3-fill', 'Disposisi',
+        request()->is('disposisi*')) !!}
+
+    {!! navLink(route('inbox'), 'bi bi-inbox-fill', 'Inbox',
+        request()->is('inbox*')) !!}
+
+
+{{-- ================================================================ --}}
+{{-- STAF: Surat Masuk + Disposisi + Inbox                            --}}
+{{-- ================================================================ --}}
+@elseif(in_array($role, ['staf', 'staff']))
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mb-2">Utama</p>
+
+    {!! navLink(route('home'), 'bi bi-grid-1x2-fill', 'Dashboard', request()->is('home')) !!}
+
+    {!! navLink(route('surat-masuk.index'), 'bi bi-envelope-check-fill', 'Surat Masuk',
+        request()->is('surat-masuk*')) !!}
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mt-4 mb-2">Alur Kerja</p>
+
+    {!! navLink(route('disposisi.monitoring'), 'bi bi-diagram-3-fill', 'Disposisi',
+        request()->is('disposisi*')) !!}
+
+    {!! navLink(route('inbox'), 'bi bi-inbox-fill', 'Inbox',
+        request()->is('inbox*')) !!}
+
+
+{{-- ================================================================ --}}
+{{-- ADMIN: Semua fitur termasuk Administrasi                         --}}
+{{-- ================================================================ --}}
+@elseif($role == 'admin')
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mb-2">Utama</p>
+
+    {!! navLink(route('home'), 'bi bi-grid-1x2-fill', 'Dashboard', request()->is('home')) !!}
+
+    {!! navLink(route('surat-masuk.index'), 'bi bi-envelope-check-fill', 'Surat Masuk',
+        request()->is('surat-masuk*') && !request()->is('surat-masuk/create')) !!}
+
+    {!! navLink(route('surat-masuk.create'), 'fas fa-plus', 'Input Surat',
+        request()->is('surat-masuk/create')) !!}
+
+    {!! navLink(route('surat-keluar.index'), 'bi bi-send-fill', 'Surat Keluar',
+        request()->is('surat-keluar*')) !!}
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mt-4 mb-2">Referensi</p>
+
+    {!! navLink(route('produk-hukum.index'), 'fas fa-gavel', 'Produk Hukum',
+        request()->is('produk-hukum*')) !!}
+
+    {!! navLink(route('pengambilan.index'), 'fas fa-hand-holding', 'Pengambilan Produk Hukum',
+        request()->is('pengambilan*')) !!}
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mt-4 mb-2">Alur Kerja</p>
+
+    {!! navLink(route('disposisi.monitoring'), 'bi bi-diagram-3-fill', 'Disposisi',
+        request()->is('disposisi*')) !!}
+
+    {!! navLink(route('inbox'), 'bi bi-inbox-fill', 'Inbox', request()->is('inbox*')) !!}
+
+    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mt-4 mb-2">Administrasi</p>
+
+    @php
+        $adminMenuActive = request()->is('users*') || request()->is('laporan*') || request()->is('system/backup*');
+    @endphp
+    <div x-data="{ open: {{ $adminMenuActive ? 'true' : 'false' }} }" class="mb-1">
+        {{-- Accordion Toggle --}}
+        <button @click="open = !open"
+                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 w-full
+                       {{ $adminMenuActive ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+            <i class="fas fa-cogs text-base w-5 text-center flex-shrink-0 {{ $adminMenuActive ? 'text-amber-400' : '' }}"></i>
+            <span class="flex-1 text-left">Administrasi</span>
+            <i class="fas fa-chevron-down text-xs transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+        </button>
+
+        {{-- Submenu --}}
+        <div x-show="open" x-cloak x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1" x-transition:enter-end="opacity-100 translate-y-0"
+             class="mt-1 ml-3 pl-3 border-l border-slate-700 space-y-0.5">
+
+            <a href="{{ route('users.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 w-full
+                      {{ request()->is('users*') ? 'nav-link-active' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                <i class="bi bi-people-fill text-base w-5 text-center flex-shrink-0"></i>
+                <span>Manajemen User</span>
+            </a>
+
+            <a href="{{ route('laporan.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 w-full
+                      {{ request()->is('laporan*') ? 'nav-link-active' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                <i class="bi bi-bar-chart-fill text-base w-5 text-center flex-shrink-0"></i>
+                <span>Laporan</span>
+            </a>
+
+            <button onclick="document.getElementById('importModal').classList.remove('hidden')"
+                    class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200 w-full">
+                <i class="bi bi-upload text-base w-5 text-center flex-shrink-0 text-cyan-400"></i>
+                <span>Import Excel</span>
+            </button>
+
+            <button onclick="document.getElementById('exportModal').classList.remove('hidden')"
+                    class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-all duration-200 w-full">
+                <i class="bi bi-file-earmark-spreadsheet-fill text-base w-5 text-center flex-shrink-0 text-green-400"></i>
+                <span>Export Excel</span>
+            </button>
+
+            <a href="{{ route('backup.index') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-medium transition-all duration-200 w-full
+                      {{ request()->is('system/backup*') ? 'nav-link-active' : 'text-slate-400 hover:text-white hover:bg-slate-800' }}">
+                <i class="fas fa-database text-base w-5 text-center flex-shrink-0"></i>
+                <span>Backup & Restore</span>
+            </a>
 
         </div>
     </div>
-</nav>
+
+@endif

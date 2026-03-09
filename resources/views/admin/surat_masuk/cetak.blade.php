@@ -37,7 +37,7 @@
                 <h3>PEMERINTAH KABUPATEN MALANG</h3>
                 <h2>SEKRETARIAT DAERAH</h2>
                 <p>Jalan Raden Panji Nomor 158 Kepanjen, Kabupaten Malang, Jawa Timur</p>
-                <p>Telepon/Faksimile (0341) 392024 Laman: malangkab.go.id</p>
+                <p>Telepon/Faksimile (0341) 392024 Laman: jdih.malangkab.go.id</p>
                 <p>Pos-el: sekda@malangkab.go.id, Kode Pos: 65163</p>
             </td>
         </tr>
@@ -108,7 +108,7 @@
         <div class="signature-box">
             <p>Kepanjen, {{ date('d F Y') }}</p>
             <p>Kepala Bagian,</p>
-            <br><br><br><br> <p style="text-decoration: underline; font-weight: bold;"> NAMA KABAG </p>
+            <br><br><br><br> <p style="text-decoration: underline; font-weight: bold;"> ARRIE HENDRAWAN MAHARDHIEKA, SH. </p>
             <p>NIP. .....................................</p>
         </div>
     </div>

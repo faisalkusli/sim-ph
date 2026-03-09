@@ -21,7 +21,7 @@ return new class extends Migration
             $table->date('tgl_diterima');
             $table->string('file_scan_path')->nullable(); 
             $table->string('file_draft_path')->nullable();
-            $table->string('status')->default('Menunggu'); 
+            $table->string('status')->default('Menunggu Validasi'); 
             $table->text('alasan_tolak')->nullable(); 
             $table->text('catatan_verifikasi')->nullable();
             $table->text('catatan_revisi')->nullable();

@@ -139,7 +139,7 @@
                         <h3>Pemerintah Kabupaten Malang</h3>
                         <h2>Sekretariat Daerah</h2>
                         <p>Jalan Raden Panji Nomor 158 Kepanjen, Kabupaten Malang, Jawa Timur</p>
-                        <p class="kontak">Telepon/Faksimile (0341) 392024 | Laman: malangkab.go.id</p>
+                        <p class="kontak">Telepon/Faksimile (0341) 392024 | Laman: jdih.malangkab.go.id</p>
                         <p class="kontak">Pos-el: sekda@malangkab.go.id | Kode Pos: 65163</p>
                     </td>
                 </tr>
@@ -193,7 +193,7 @@
 
         <div class="ttd-wrapper">
             <div class="ttd-box">
-                <p>&nbsp;</p> <p>Staf Bagian Hukum,</p>
+                <p>&nbsp;</p> <p>Admin Bagian Hukum,</p>
                 <div class="ttd-space"></div> <p class="nama-terang">( .................................... ) </p>
             </div>
 
@@ -205,7 +205,7 @@
 
         <div class="note">
             <strong>Catatan:</strong><br>
-            1. Dokumen ini dicetak secara otomatis oleh komputer sebagai bukti sah penerimaan surat.<br>
+            1. Dokumen ini dicetak secara otomatis oleh sistem sebagai bukti sah penerimaan surat.<br>
             2. Simpan tanda terima ini untuk keperluan pengecekan status surat di kemudian hari.
         </div>
     </div>

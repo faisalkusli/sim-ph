@@ -1,112 +1,222 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-4 py-4">
+<div class="space-y-5">
 
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            
-            <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 fw-bold text-primary">
-                        <i class="bi bi-file-earmark-plus me-2"></i>Input Surat Masuk Baru
-                    </h5>
+    {{-- Page Header --}}
+    <div>
+        <h1 class="text-2xl font-bold text-slate-800">Input Surat Masuk</h1>
+        <nav class="flex items-center gap-2 text-sm text-slate-400 mt-1">
+            <a href="{{ route('home') }}" class="hover:text-blue-600">Dashboard</a>
+            <i class="bi bi-chevron-right text-xs"></i>
+            <a href="{{ route('surat-masuk.index') }}" class="hover:text-blue-600">Surat Masuk</a>
+            <i class="bi bi-chevron-right text-xs"></i>
+            <span class="text-slate-600">Input Baru</span>
+        </nav>
+    </div>
+
+    {{-- Validation Errors --}}
+    @if($errors->any())
+    <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 flex gap-3">
+        <i class="fas fa-exclamation-circle text-red-500 text-lg flex-shrink-0 mt-0.5"></i>
+        <ul class="list-disc list-inside text-sm space-y-0.5">
+            @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    @endif
+
+    {{-- Form Card --}}
+    <form action="{{ route('surat-masuk.store') }}" method="POST" enctype="multipart/form-data">
+        @csrf
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+            <div class="p-5 border-b border-slate-100">
+                <h2 class="font-semibold text-slate-700 flex items-center gap-2">
+                    <i class="bi bi-envelope-fill text-blue-600"></i> Informasi Surat
+                </h2>
+            </div>
+
+            <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+
+                {{-- No Agenda --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        No Agenda <span class="text-red-500">*</span>
+                        <span class="ml-1 inline-flex items-center gap-1 text-xs font-normal text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
+                            <i class="fas fa-magic text-[10px]"></i> Otomatis
+                        </span>
+                    </label>
+                    <div class="relative">
+                        <input type="text" name="no_agenda"
+                               value="{{ old('no_agenda', $no_agenda_baku) }}" required
+                               readonly
+                               class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 pr-20 bg-slate-50 text-slate-600 cursor-default focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none @error('no_agenda') border-red-400 @enderror">
+                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-mono select-none pointer-events-none">
+                            {{ date('Y') }}
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-1">Format: <span class="font-mono">urutan/HK/tahun</span> — dibuat otomatis oleh sistem.</p>
+                    @error('no_agenda')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                 </div>
-                
-                <div class="card-body p-4">
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            <ul class="mb-0">
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
 
-                    <form action="{{ route('surat-masuk.store') }}" method="POST" enctype="multipart/form-data">
-                        @csrf
+                {{-- Asal Instansi --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Asal Instansi <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="asal_instansi" value="{{ old('asal_instansi') }}" required
+                           class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none @error('asal_instansi') border-red-400 @enderror"
+                           placeholder="Nama instansi pengirim">
+                    @error('asal_instansi')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">No. Agenda</label>
-                                    <input type="text" 
-                                        name="no_agenda" 
-                                        class="form-control bg-light fw-bold text-primary" 
-                                        value="{{ old('no_agenda', $no_agenda_baku) }}" 
-                                        required>
+                {{-- No Surat Pengirim --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        No Surat Pengirim <span class="text-red-500">*</span>
+                    </label>
+                    <input type="text" name="no_surat_pengirim" value="{{ old('no_surat_pengirim') }}" required
+                           class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none @error('no_surat_pengirim') border-red-400 @enderror"
+                           placeholder="Nomor surat dari pengirim">
+                    @error('no_surat_pengirim')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                {{-- Jenis Surat --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Jenis Surat <span class="text-red-500">*</span>
+                    </label>
+                    <select name="jenis_surat" required
+                            class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none @error('jenis_surat') border-red-400 @enderror">
+                        <option value="">-- Pilih Jenis --</option>
+                        @foreach(['Peraturan Bupati','SK Bupati','Surat Undangan','Surat Tembusan','Surat Lainnya'] as $jenis)
+                        <option value="{{ $jenis }}" {{ old('jenis_surat') == $jenis ? 'selected' : '' }}>{{ $jenis }}</option>
+                        @endforeach
+                    </select>
+                    @error('jenis_surat')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                {{-- Tanggal Surat --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Tanggal Surat <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" name="tgl_surat" value="{{ old('tgl_surat') }}" required
+                           class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none @error('tgl_surat') border-red-400 @enderror">
+                    @error('tgl_surat')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                {{-- Tanggal Diterima --}}
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Tanggal Diterima <span class="text-red-500">*</span>
+                    </label>
+                    <input type="date" name="tgl_diterima" value="{{ old('tgl_diterima', date('Y-m-d')) }}" required
+                           class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none @error('tgl_diterima') border-red-400 @enderror">
+                    @error('tgl_diterima')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                {{-- Perihal (full width) --}}
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Perihal / Isi Ringkas <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="perihal" rows="3" required
+                              class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none @error('perihal') border-red-400 @enderror"
+                              placeholder="Tuliskan perihal atau isi ringkas surat...">{{ old('perihal') }}</textarea>
+                    @error('perihal')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                </div>
+
+                {{-- File Uploads Section (full width) --}}
+                <div class="md:col-span-2">
+                    <div class="mb-3">
+                        <h3 class="text-sm font-semibold text-slate-700 flex items-center gap-2">
+                            <i class="fas fa-paperclip text-slate-500"></i> Upload Dokumen
+                            <span class="text-slate-400 font-normal">(Opsional, PDF/JPG/PNG maks. 10MB)</span>
+                        </h3>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                        {{-- Scan Surat Pengantar --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-blue-700 mb-1.5 uppercase tracking-wide">
+                                <i class="fas fa-file-alt mr-1"></i> Scan Surat Pengantar
+                            </label>
+                            <div x-data="{ filename: '' }"
+                                 class="relative flex flex-col items-center gap-2 p-4 border-2 border-dashed border-blue-200 rounded-xl hover:border-blue-400 bg-blue-50/30 transition-colors cursor-pointer text-center"
+                                 @click="$refs.filePengantar.click()">
+                                <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-upload text-blue-500"></i>
                                 </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Asal Instansi</label>
-                                    <input type="text" name="asal_instansi" class="form-control @error('asal_instansi') is-invalid @enderror" value="{{ old('asal_instansi') }}">
-                                    @error('asal_instansi') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                                <div>
+                                    <p class="text-sm font-medium text-slate-700" x-text="filename || 'Klik untuk pilih file'"></p>
+                                    <p class="text-xs text-slate-400">PDF, JPG, atau PNG</p>
                                 </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Jenis Surat</label>
-                                    <select class="form-select @error('jenis_surat') is-invalid @enderror" name="jenis_surat">
-                                        <option value="" selected disabled>-- Pilih Jenis Surat --</option>
-                                        @php
-                                            $jenis = ['Perda', 'Perbup', 'SK Bupati', 'SK Sekda', 'SK Hibah', 'Surat Undangan', 'Surat Tembusan', 'Surat Lainnya'];
-                                        @endphp
-                                        @foreach($jenis as $j)
-                                            <option value="{{ $j }}" {{ old('jenis_surat') == $j ? 'selected' : '' }}>
-                                                {{ $j }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('jenis_surat') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
+                                <input x-ref="filePengantar" type="file" name="file_pengantar" accept=".pdf,.jpg,.jpeg,.png"
+                                       class="hidden" @change="filename = $event.target.files[0]?.name || ''">
                             </div>
-
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">No. Surat Pengirim</label>
-                                    <input type="text" name="no_surat_pengirim" class="form-control @error('no_surat_pengirim') is-invalid @enderror" value="{{ old('no_surat_pengirim') }}">
-                                    @error('no_surat_pengirim') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Tanggal Surat</label>
-                                    <input type="date" name="tgl_surat" class="form-control @error('tgl_surat') is-invalid @enderror" value="{{ old('tgl_surat') }}">
-                                    @error('tgl_surat') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Tanggal Diterima</label>
-                                    <input type="date" name="tgl_diterima" class="form-control @error('tgl_diterima') is-invalid @enderror" value="{{ old('tgl_diterima', date('Y-m-d')) }}">
-                                </div>
-                            </div>
-
-                            <div class="col-12">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">Perihal</label>
-                                    <textarea name="perihal" class="form-control @error('perihal') is-invalid @enderror" rows="3">{{ old('perihal') }}</textarea>
-                                    @error('perihal') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">File Scan Surat (PDF/Gambar)</label>
-                                    <input type="file" name="file_scan" class="form-control @error('file_scan') is-invalid @enderror">
-                                    <small class="text-muted">Maksimal upload 2MB.</small>
-                                    @error('file_scan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                                </div>
-                            </div>
+                            @error('file_pengantar')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                         </div>
 
-                        <div class="d-flex justify-content-end gap-2 mt-4">
-                            <a href="{{ route('surat-masuk.index') }}" class="btn btn-light border px-4">Batal</a>
-                            <button type="submit" class="btn btn-primary px-4">
-                                <i class="bi bi-save me-1"></i> Simpan Data Surat
-                            </button>
+                        {{-- Scan Surat Pernyataan --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-purple-700 mb-1.5 uppercase tracking-wide">
+                                <i class="fas fa-file-signature mr-1"></i> Scan Surat Pernyataan
+                            </label>
+                            <div x-data="{ filename: '' }"
+                                 class="relative flex flex-col items-center gap-2 p-4 border-2 border-dashed border-purple-200 rounded-xl hover:border-purple-400 bg-purple-50/30 transition-colors cursor-pointer text-center"
+                                 @click="$refs.filePernyataan.click()">
+                                <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-upload text-purple-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-700" x-text="filename || 'Klik untuk pilih file'"></p>
+                                    <p class="text-xs text-slate-400">PDF, JPG, atau PNG</p>
+                                </div>
+                                <input x-ref="filePernyataan" type="file" name="file_pernyataan" accept=".pdf,.jpg,.jpeg,.png"
+                                       class="hidden" @change="filename = $event.target.files[0]?.name || ''">
+                            </div>
+                            @error('file_pernyataan')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
                         </div>
 
-                    </form>
+                        {{-- Dokumen Lampiran --}}
+                        <div>
+                            <label class="block text-xs font-semibold text-green-700 mb-1.5 uppercase tracking-wide">
+                                <i class="fas fa-folder-open mr-1"></i> Dokumen Lampiran / Pendukung
+                            </label>
+                            <div x-data="{ filename: '' }"
+                                 class="relative flex flex-col items-center gap-2 p-4 border-2 border-dashed border-green-200 rounded-xl hover:border-green-400 bg-green-50/30 transition-colors cursor-pointer text-center"
+                                 @click="$refs.fileLampiran.click()">
+                                <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-file-upload text-green-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-medium text-slate-700" x-text="filename || 'Klik untuk pilih file'"></p>
+                                    <p class="text-xs text-slate-400">PDF, JPG, atau PNG</p>
+                                </div>
+                                <input x-ref="fileLampiran" type="file" name="file_lampiran" accept=".pdf,.jpg,.jpeg,.png"
+                                       class="hidden" @change="filename = $event.target.files[0]?.name || ''">
+                            </div>
+                            @error('file_lampiran')<p class="text-red-500 text-xs mt-1">{{ $message }}</p>@enderror
+                        </div>
+
+                    </div>
                 </div>
             </div>
+
+            {{-- Actions --}}
+            <div class="px-5 pb-5 flex justify-end gap-3 border-t border-slate-100 pt-4">
+                <a href="{{ route('surat-masuk.index') }}"
+                   class="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors">
+                    Batal
+                </a>
+                <button type="submit"
+                        class="px-6 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 transition-colors shadow-sm flex items-center gap-2">
+                    <i class="fas fa-save"></i> Simpan Surat
+                </button>
+            </div>
         </div>
-    </div>
+    </form>
 </div>
 @endsection

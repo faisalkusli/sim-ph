@@ -47,7 +47,7 @@ class UserController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|min:6',
             'no_hp' => 'nullable|numeric',
-            'role' => 'required|in:super_admin,admin,kabag,kasubag,staf,tamu', 
+            'role' => 'required|in:super_admin,admin,operator,kabag,kasubag,staf,tamu',
         ]);
 
         User::create([
@@ -74,7 +74,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id, 
             'no_hp' => 'nullable|numeric',
-            'role' => 'required|in:super_admin,admin,kabag,kasubag,staf,tamu',
+            'role' => 'required|in:super_admin,admin,operator,kabag,kasubag,staf,tamu',
         ]);
 
         $data = [

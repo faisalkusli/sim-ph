@@ -3,16 +3,328 @@
 @section('title', 'Detail Disposisi')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <h2>
-                    <i class="fas fa-file-alt"></i>
-                    Detail Disposisi
-                </h2>
-                <a href="{{ route('inbox') }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Kembali ke Inbox
+<div class="space-y-5">
+
+    {{-- Page Header --}}
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-slate-800">Detail Disposisi</h1>
+            <nav class="flex items-center gap-2 text-sm text-slate-400 mt-1">
+                <a href="{{ route('home') }}" class="hover:text-blue-600">Dashboard</a>
+                <i class="bi bi-chevron-right text-xs"></i>
+                <a href="{{ route('inbox') }}" class="hover:text-blue-600">Inbox</a>
+                <i class="bi bi-chevron-right text-xs"></i>
+                <span class="text-slate-600">Detail</span>
+            </nav>
+        </div>
+        <a href="{{ route('inbox') }}"
+           class="px-4 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-sm font-semibold hover:bg-slate-200 transition-colors flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i> Kembali ke Inbox
+        </a>
+    </div>
+
+    @if($errors->any())
+    <div class="bg-red-50 border border-red-200 text-red-800 rounded-xl p-4 flex gap-3">
+        <i class="fas fa-exclamation-triangle text-red-500 text-lg flex-shrink-0 mt-0.5"></i>
+        <ul class="list-disc list-inside text-sm space-y-0.5">
+            @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
+        </ul>
+    </div>
+    @endif
+
+    {{-- Surat Info --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-5 border-b border-slate-100 bg-blue-50 rounded-t-2xl">
+            <h2 class="font-semibold text-blue-800 flex items-center gap-2">
+                <i class="fas fa-envelope text-blue-600"></i> Informasi Surat
+            </h2>
+        </div>
+        <div class="p-5 grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">No. Agenda</p>
+                <p class="font-bold text-slate-800">{{ $disposisi->surat->no_agenda }}</p>
+            </div>
+            <div class="md:col-span-2">
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Perihal</p>
+                <p class="font-semibold text-slate-800">{{ $disposisi->surat->perihal }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Asal Instansi</p>
+                <p class="text-slate-700">{{ $disposisi->surat->asal_instansi }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Tgl Diterima</p>
+                <p class="text-slate-600">{{ optional($disposisi->surat->tgl_diterima)->format('d-m-Y') ?? '-' }}</p>
+            </div>
+        </div>
+    </div>
+
+    {{-- Disposisi Info --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-5 border-b border-slate-100 bg-blue-600 rounded-t-2xl">
+            <h2 class="font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-paper-plane"></i> Informasi Disposisi
+            </h2>
+        </div>
+        <div class="p-5 grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Dari</p>
+                <p class="font-semibold text-slate-800">{{ $disposisi->pengirim->name ?? 'N/A' }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Ke</p>
+                <p class="font-semibold text-slate-800">{{ $disposisi->penerima->name ?? 'N/A' }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Sifat Surat</p>
+                @php $sifatColor = match($disposisi->sifat) { 'Sangat Segera' => 'bg-red-100 text-red-700', 'Segera' => 'bg-amber-100 text-amber-700', default => 'bg-slate-100 text-slate-600' }; @endphp
+                <span class="inline-block {{ $sifatColor }} text-xs font-semibold px-2.5 py-1 rounded-full">{{ $disposisi->sifat }}</span>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Tgl Diterima</p>
+                <p class="text-slate-600">{{ optional($disposisi->tanggal_diterima)->format('d-m-Y H:i') ?? 'Belum dibaca' }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Tgl Selesai</p>
+                <p class="text-slate-600">{{ optional($disposisi->tanggal_selesai)->format('d-m-Y H:i') ?? 'Belum selesai' }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Status</p>
+                @php
+                    $dBadge = match($disposisi->status) { 0 => 'bg-amber-100 text-amber-700', 1 => 'bg-blue-100 text-blue-700', 2 => 'bg-purple-100 text-purple-700', 3 => 'bg-orange-100 text-orange-700', 4 => 'bg-red-100 text-red-700', 5 => 'bg-green-100 text-green-700', default => 'bg-slate-100 text-slate-600' };
+                    $dLabels = [0=>'Belum Dibaca',1=>'Sedang Dikerjakan',2=>'Tunggu Verif Kasubag',3=>'Tunggu Verif Kabag',4=>'Perlu Revisi',5=>'Selesai'];
+                @endphp
+                <span class="inline-block {{ $dBadge }} text-xs font-semibold px-2.5 py-1 rounded-full">
+                    {{ $dLabels[$disposisi->status] ?? 'Unknown' }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {{-- Instruksi --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-5 border-b border-amber-200 bg-amber-50 rounded-t-2xl">
+            <h2 class="font-semibold text-amber-800 flex items-center gap-2">
+                <i class="fas fa-clipboard-list text-amber-600"></i> Instruksi
+            </h2>
+        </div>
+        <div class="p-5">
+            <p class="text-slate-700 text-sm leading-relaxed">{{ $disposisi->instruksi }}</p>
+        </div>
+    </div>
+
+    {{-- File Scan --}}
+    @if($disposisi->surat->file_scan_path)
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div>
+                <p class="font-semibold text-slate-800 text-sm">File Scan Surat</p>
+                <p class="text-xs text-slate-400">Berkas digital surat masuk</p>
+            </div>
+        </div>
+        <a href="{{ asset('storage/' . $disposisi->surat->file_scan_path) }}" target="_blank"
+           class="px-4 py-2 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-700 flex items-center gap-1.5">
+            <i class="fas fa-download"></i> Unduh File
+        </a>
+    </div>
+    @endif
+
+    {{-- Hasil Kerja --}}
+    @if($disposisi->catatan_staff || $disposisi->file_hasil)
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-5 border-b border-green-200 bg-green-50 rounded-t-2xl">
+            <h2 class="font-semibold text-green-800 flex items-center gap-2">
+                <i class="fas fa-check-double text-green-600"></i> Hasil Kerja
+            </h2>
+        </div>
+        <div class="p-5 space-y-3">
+            @if($disposisi->catatan_staff)
+            <div>
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Catatan Staff</p>
+                <p class="text-slate-700 text-sm italic border-l-2 border-green-400 pl-3">"{{ $disposisi->catatan_staff }}"</p>
+            </div>
+            @endif
+            @if($disposisi->file_hasil)
+            <div class="flex items-center gap-3">
+                <a href="{{ asset('storage/' . $disposisi->file_hasil) }}" target="_blank"
+                   class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-xs font-bold rounded-xl hover:bg-green-700">
+                    <i class="fas fa-download"></i> Unduh File Hasil
+                </a>
+            </div>
+            @endif
+        </div>
+    </div>
+    @endif
+
+    {{-- Catatan Revisi --}}
+    @if($disposisi->catatan_revisi)
+    <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+        <h2 class="font-semibold text-red-800 flex items-center gap-2 mb-2">
+            <i class="fas fa-exclamation-circle text-red-600"></i> Catatan Revisi
+        </h2>
+        <p class="text-sm text-red-700">{{ $disposisi->catatan_revisi }}</p>
+    </div>
+    @endif
+
+    {{-- Actions --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-5">
+        <h2 class="font-semibold text-slate-700 mb-4 flex items-center gap-2">
+            <i class="fas fa-bolt text-blue-600"></i> Aksi
+        </h2>
+        <div class="flex flex-wrap gap-3">
+            @if($disposisi->status == 0)
+            <form action="{{ route('disposisi.terima', $disposisi->id) }}" method="POST">
+                @csrf
+                <button type="submit" class="px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center gap-2">
+                    <i class="fas fa-check"></i> Terima Tugas
+                </button>
+            </form>
+            @elseif($disposisi->status == 1 && auth()->id() == $disposisi->tujuan_user_id)
+            <button onclick="document.getElementById('modalLapor').classList.remove('hidden')"
+                    class="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 flex items-center gap-2">
+                <i class="fas fa-file-upload"></i> Laporkan Hasil Kerja
+            </button>
+            @elseif($disposisi->status == 2 && in_array(auth()->user()->role, ['admin','kabag','kasubag']))
+            <button onclick="document.getElementById('modalVerifikasi').classList.remove('hidden')"
+                    class="px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center gap-2">
+                <i class="fas fa-check-circle"></i> Verifikasi (Approve)
+            </button>
+            <button onclick="document.getElementById('modalRevisi').classList.remove('hidden')"
+                    class="px-5 py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 flex items-center gap-2">
+                <i class="fas fa-redo"></i> Minta Revisi
+            </button>
+            @elseif($disposisi->status == 4 && auth()->id() == $disposisi->tujuan_user_id)
+            <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl p-3 text-sm flex items-start gap-2 max-w-md">
+                <i class="fas fa-exclamation-circle flex-shrink-0 mt-0.5"></i>
+                <span><strong>Perlu Revisi:</strong> {{ $disposisi->catatan_revisi }}</span>
+            </div>
+            <button onclick="document.getElementById('modalLapor').classList.remove('hidden')"
+                    class="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 flex items-center gap-2">
+                <i class="fas fa-redo"></i> Laporkan Revisi
+            </button>
+            @elseif($disposisi->status == 5)
+            <div class="bg-green-50 border border-green-200 text-green-700 rounded-xl p-3 text-sm flex items-center gap-2">
+                <i class="fas fa-check-circle text-green-500 text-lg"></i> Disposisi berhasil diselesaikan
+            </div>
+            @endif
+
+            @if($disposisi->penerima && ($disposisi->penerima->id == auth()->id() || in_array(auth()->user()->role, ['admin','kabag','kasubag'])))
+            <a href="{{ route('surat-masuk.tracking', $disposisi->surat->id) }}"
+               class="px-5 py-2.5 bg-slate-100 text-slate-600 text-sm font-semibold rounded-xl hover:bg-slate-200 flex items-center gap-2">
+                <i class="fas fa-history"></i> Lihat Tracking Surat
+            </a>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- Modal: Lapor Hasil --}}
+<div id="modalLapor" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+     onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onclick="event.stopPropagation()">
+        <form action="{{ route('disposisi.selesai', $disposisi->id) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            <div class="flex items-center justify-between p-5 border-b border-slate-100">
+                <h3 class="font-bold text-slate-800 flex items-center gap-2">
+                    <i class="fas fa-file-upload text-blue-600"></i> Lapor Hasil Kerja
+                </h3>
+                <button type="button" onclick="document.getElementById('modalLapor').classList.add('hidden')"
+                        class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Catatan Hasil Kerja <span class="text-red-500">*</span>
+                    </label>
+                    <textarea name="catatan_staff" rows="5" required
+                              class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none">{{ old('catatan_staff') }}</textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                        File Hasil <span class="text-slate-400 font-normal">(Opsional, max 5MB)</span>
+                    </label>
+                    <input type="file" name="file_hasil" accept=".pdf,.doc,.docx"
+                           class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5">
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 px-5 pb-5 border-t border-slate-100 pt-4">
+                <button type="button" onclick="document.getElementById('modalLapor').classList.add('hidden')"
+                        class="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50">Batal</button>
+                <button type="submit" class="px-5 py-2 text-sm bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Kirim Laporan
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Modal: Verifikasi Approve --}}
+<div id="modalVerifikasi" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+     onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md" onclick="event.stopPropagation()">
+        <form action="{{ route('disposisi.verifikasi', $disposisi->id) }}" method="POST">
+            @csrf
+            <input type="hidden" name="status_akhir" value="Selesai">
+            <div class="flex items-center justify-between p-5 border-b border-green-200 bg-green-50 rounded-t-2xl">
+                <h3 class="font-bold text-green-800 flex items-center gap-2">
+                    <i class="fas fa-check-circle text-green-600"></i> Verifikasi - Approve
+                </h3>
+                <button type="button" onclick="document.getElementById('modalVerifikasi').classList.add('hidden')"
+                        class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-5">
+                <div class="bg-blue-50 border border-blue-200 text-blue-700 rounded-xl p-4 text-sm mb-4">
+                    <strong>Hasil kerja dinyatakan sesuai.</strong>
+                    <p class="text-blue-600">Disposisi akan ditandai Selesai.</p>
+                </div>
+            </div>
+            <div class="flex justify-end gap-3 px-5 pb-5 border-t border-slate-100 pt-4">
+                <button type="button" onclick="document.getElementById('modalVerifikasi').classList.add('hidden')"
+                        class="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50">Batal</button>
+                <button type="submit" class="px-5 py-2 text-sm bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700 flex items-center gap-2">
+                    <i class="fas fa-check-circle"></i> Approve
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Modal: Minta Revisi --}}
+<div id="modalRevisi" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+     onclick="if(event.target===this)this.classList.add('hidden')">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg" onclick="event.stopPropagation()">
+        <form action="{{ route('disposisi.verifikasi', $disposisi->id) }}" method="POST">
+            @csrf
+            <input type="hidden" name="status_akhir" value="Revisi">
+            <div class="flex items-center justify-between p-5 border-b border-amber-200 bg-amber-50 rounded-t-2xl">
+                <h3 class="font-bold text-amber-800 flex items-center gap-2">
+                    <i class="fas fa-redo text-amber-600"></i> Minta Revisi
+                </h3>
+                <button type="button" onclick="document.getElementById('modalRevisi').classList.add('hidden')"
+                        class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-5">
+                <label class="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Catatan Revisi <span class="text-red-500">*</span>
+                </label>
+                <textarea name="catatan_revisi" rows="5" required
+                          placeholder="Jelaskan apa yang perlu diperbaiki..."
+                          class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none resize-none">{{ old('catatan_revisi') }}</textarea>
+            </div>
+            <div class="flex justify-end gap-3 px-5 pb-5 border-t border-slate-100 pt-4">
+                <button type="button" onclick="document.getElementById('modalRevisi').classList.add('hidden')"
+                        class="px-4 py-2 text-sm border border-slate-200 text-slate-600 rounded-xl hover:bg-slate-50">Batal</button>
+                <button type="submit" class="px-5 py-2 text-sm bg-amber-500 text-white font-semibold rounded-xl hover:bg-amber-600 flex items-center gap-2">
+                    <i class="fas fa-redo"></i> Kirim Catatan Revisi
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
                 </a>
             </div>
         </div>

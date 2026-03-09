@@ -30,10 +30,11 @@ class SuratMasukController extends Controller
 {
     $query = SuratMasuk::query();
 
-        if (in_array(auth()->user()->role, ['tamu', 'operator'])) {
+        // Tamu hanya melihat surat yang diinput sendiri
+        // Operator dan role lainnya dapat melihat semua surat
+        if (auth()->user()->role === 'tamu') {
             $query->where('user_id', auth()->id());
         }
-
         if ($request->filled('cari')) {
             $cari = $request->cari;
             $query->where(function($q) use ($cari) {
@@ -42,13 +43,16 @@ class SuratMasukController extends Controller
                 ->orWhere('no_surat_pengirim', 'like', '%' . $cari . '%');
             });
         }
+        if ($request->filled('jenis')) {
+            $query->where('jenis_surat', $request->jenis);
+        }
         $surat_masuk = $query->latest()->paginate(10);
-        $surat_masuk->appends(['cari' => $request->cari]);
+        $surat_masuk->appends($request->only(['cari', 'jenis']));
         $listTujuan = collect(); 
 
         if (auth()->check()) {
             $role = auth()->user()->role;
-            if (in_array($role, ['admin', 'kabag'])) {
+            if (in_array($role, ['admin', 'supervisor', 'kabag'])) {
                 $listTujuan = User::whereIn('role', ['kasubag', 'staf'])->get();
             } elseif ($role == 'kasubag') {
                 $listTujuan = User::where('role', 'staf')->get();
@@ -79,6 +83,21 @@ class SuratMasukController extends Controller
                 $path = $request->file('file_scan')->store('surat_masuk', 'public');
             }
 
+            $pathPengantar = null;
+            if ($request->hasFile('file_pengantar')) {
+                $pathPengantar = $request->file('file_pengantar')->store('surat_masuk/pengantar', 'public');
+            }
+
+            $pathPernyataan = null;
+            if ($request->hasFile('file_pernyataan')) {
+                $pathPernyataan = $request->file('file_pernyataan')->store('surat_masuk/pernyataan', 'public');
+            }
+
+            $pathLampiran = null;
+            if ($request->hasFile('file_lampiran')) {
+                $pathLampiran = $request->file('file_lampiran')->store('surat_masuk/lampiran', 'public');
+            }
+
             $surat = SuratMasuk::create([
                 'user_id' => auth()->id(),
                 'no_agenda' => $validated['no_agenda'],
@@ -88,12 +107,9 @@ class SuratMasukController extends Controller
                 'tgl_surat' => $validated['tgl_surat'],
                 'tgl_diterima' => $validated['tgl_diterima'],
                 'file_scan_path' => $path,
-                'status' => SuratMasukStatus::MenungguValidasi->value, 
-            ]);
-
-            TrackingSurat::create([
-                'surat_masuk_id' => $surat->id,
-                'status_log' => 'Baru (Menunggu Validasi)',
+                'file_pengantar_path' => $pathPengantar,
+                'file_pernyataan_path' => $pathPernyataan,
+                'file_lampiran_path' => $pathLampiran,
                 'tgl_status' => now(),
                 'user_id' => Auth::id(),
                 'catatan' => 'Surat masuk diinput ke sistem.'
@@ -124,8 +140,10 @@ class SuratMasukController extends Controller
     public function destroy($id)
     {
         $surat = SuratMasuk::findOrFail($id);
-        if ($surat->file_scan_path && Storage::exists('public/' . $surat->file_scan_path)) {
-            Storage::delete('public/' . $surat->file_scan_path);
+        foreach (['file_scan_path', 'file_pengantar_path', 'file_pernyataan_path', 'file_lampiran_path', 'file_draft_path'] as $col) {
+            if ($surat->$col && Storage::exists('public/' . $surat->$col)) {
+                Storage::delete('public/' . $surat->$col);
+            }
         }
         $surat->delete();
 
@@ -146,7 +164,9 @@ class SuratMasukController extends Controller
             $surat->update([
                 'status' => SuratMasukStatus::Ditolak->value,
                 'alasan_tolak' => $validated['alasan_tolak'],
-                'catatan_verifikasi' => 'Ditolak oleh ' . auth()->user()->name . ' pada ' . now()->format('d-m-Y H:i:s')
+                'catatan_verifikasi' => 'Ditolak oleh ' . auth()->user()->name . ' pada ' . now()->format('d-m-Y H:i:s'),
+                'validasi_oleh' => auth()->user()->name,
+                'tgl_validasi' => now(),
             ]);
 
             TrackingSurat::create([
@@ -162,7 +182,9 @@ class SuratMasukController extends Controller
             $surat->update([
                 'status' => SuratMasukStatus::SiapDisposisi->value,
                 'alasan_tolak' => null,
-                'catatan_verifikasi' => 'Validasi Awal OK oleh ' . auth()->user()->name
+                'catatan_verifikasi' => 'Validasi Awal OK oleh ' . auth()->user()->name,
+                'validasi_oleh' => auth()->user()->name,
+                'tgl_validasi' => now(),
             ]);
 
             TrackingSurat::create([
@@ -196,40 +218,12 @@ class SuratMasukController extends Controller
         $surat->update([
             'file_draft_path' => $path,
             'catatan_staff' => $validated['catatan_staff'],
-            'status' => SuratMasukStatus::MenungguValidasi->value // or appropriate status
+            'status' => SuratMasukStatus::MenungguValidasi->value 
         ]);
 
         return back()->with('success', 'File hasil kerja berhasil diupload!');
     }
 
-    // public function verifikasiAkhir(Request $request, $id)
-    // {
-    //    $surat = SuratMasuk::findOrFail($id);
-    //    $keputusan = $request->input('status_akhir'); // Mengambil value dari tombol submit
-    //
-    //    if ($keputusan == 'Revisi') {
-            // KASUS: MINTA REVISI
-    //        $surat->update([
-    //           'status' => 'Perlu Revisi',
-    //            'catatan_revisi' => $request->input('catatan_revisi')
-    //        ]);
-
-            // Opsional: Jika ingin status di Inbox Staff berubah jadi 'Proses' lagi
-            // $lastDisposisi = $surat->disposisi()->latest()->first();
-            // if($lastDisposisi) { $lastDisposisi->update(['status' => 1]); }
-
-     //       return back()->with('warning', 'Surat dikembalikan ke Staf untuk Revisi.');
-
-    //    } else {
-    //        // KASUS: ACC / SELESAI
-    //        $surat->update([
-    //            'status' => 'Selesai',
-    //            'catatan_verifikasi' => 'Pekerjaan Selesai & Final pada ' . now()->format('d-m-Y')
-    //        ]);
-
-    //        return back()->with('success', 'Verifikasi Akhir Selesai. Proses Tuntas!');
-    //    }
-    // }
 
     public function cetakDisposisi($id)
     {
@@ -248,9 +242,6 @@ class SuratMasukController extends Controller
         return view('admin.surat_masuk.cetak_penerima', compact('item'));
     }
 
-    /**
-     * Naik Bupati - Escalate letter to Bupati for approval
-     */
     public function naikBupati(Request $request, $id)
     {
         $surat = SuratMasuk::findOrFail($id);
@@ -290,9 +281,7 @@ class SuratMasukController extends Controller
         return back()->with('success', 'Surat berhasil dinaikkan ke Bupati untuk persetujuan!');
     }
 
-    /**
-     * Turun Bupati - Letter received back from Bupati (FINAL)
-     */
+   
     public function turunBupati(Request $request, $id)
     {
         $surat = SuratMasuk::findOrFail($id);
@@ -352,7 +341,10 @@ class SuratMasukController extends Controller
             'tgl_surat'         => 'required|date',
             'tgl_diterima'      => 'required|date',
             'perihal'           => 'required|string',
-            'file_scan'         => 'nullable|mimes:pdf|max:10240',
+            'file_scan'         => 'nullable|mimes:pdf,jpg,png,jpeg|max:10240',
+            'file_pengantar'    => 'nullable|mimes:pdf,jpg,png,jpeg|max:10240',
+            'file_pernyataan'   => 'nullable|mimes:pdf,jpg,png,jpeg|max:10240',
+            'file_lampiran'     => 'nullable|mimes:pdf,jpg,png,jpeg|max:10240',
         ]);
 
         $data = [
@@ -365,13 +357,31 @@ class SuratMasukController extends Controller
         ];
 
         if ($request->hasFile('file_scan')) {
-
             if ($surat->file_scan_path && Storage::exists('public/' . $surat->file_scan_path)) {
                 Storage::delete('public/' . $surat->file_scan_path);
             }
+            $data['file_scan_path'] = $request->file('file_scan')->store('surat_masuk', 'public');
+        }
 
-            $path = $request->file('file_scan')->store('surat_masuk', 'public');
-            $data['file_scan_path'] = $path;
+        if ($request->hasFile('file_pengantar')) {
+            if ($surat->file_pengantar_path && Storage::exists('public/' . $surat->file_pengantar_path)) {
+                Storage::delete('public/' . $surat->file_pengantar_path);
+            }
+            $data['file_pengantar_path'] = $request->file('file_pengantar')->store('surat_masuk/pengantar', 'public');
+        }
+
+        if ($request->hasFile('file_pernyataan')) {
+            if ($surat->file_pernyataan_path && Storage::exists('public/' . $surat->file_pernyataan_path)) {
+                Storage::delete('public/' . $surat->file_pernyataan_path);
+            }
+            $data['file_pernyataan_path'] = $request->file('file_pernyataan')->store('surat_masuk/pernyataan', 'public');
+        }
+
+        if ($request->hasFile('file_lampiran')) {
+            if ($surat->file_lampiran_path && Storage::exists('public/' . $surat->file_lampiran_path)) {
+                Storage::delete('public/' . $surat->file_lampiran_path);
+            }
+            $data['file_lampiran_path'] = $request->file('file_lampiran')->store('surat_masuk/lampiran', 'public');
         }
 
         $surat->update($data);

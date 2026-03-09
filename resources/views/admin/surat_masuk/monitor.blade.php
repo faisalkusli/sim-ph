@@ -1,99 +1,119 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
 
 @section('content')
-<div class="container-fluid px-4">
-    <h1 class="mt-4">Monitoring Disposisi</h1>
-    <ol class="breadcrumb mb-4">
-        <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
-        <li class="breadcrumb-item active">Monitoring</li>
-    </ol>
+<div class="space-y-5">
 
-    <div class="card mb-4 shadow-sm border-0 border-top border-primary border-4">
-        <div class="card-header bg-white py-3">
-            <h5 class="m-0 fw-bold text-primary"><i class="fas fa-chart-line me-2"></i> Pantauan Progres Disposisi</h5>
+    {{-- Page Header --}}
+    <div>
+        <h1 class="text-2xl font-bold text-slate-800">Monitoring Disposisi</h1>
+        <nav class="flex items-center gap-2 text-sm text-slate-400 mt-1">
+            <a href="{{ route('home') }}" class="hover:text-blue-600">Dashboard</a>
+            <i class="bi bi-chevron-right text-xs"></i>
+            <span class="text-slate-600">Monitoring</span>
+        </nav>
+    </div>
+
+    {{-- Table Card --}}
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-100">
+        <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+            <h2 class="font-semibold text-blue-700 flex items-center gap-2">
+                <i class="fas fa-chart-line text-blue-600"></i> Pantauan Progres Disposisi
+            </h2>
         </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="datatablesSimple" class="table table-striped table-hover align-middle">
-                    <thead class="table-dark text-center">
-                        <tr>
-                            <th>No</th>
-                            <th>Staff Tujuan</th>
-                            <th width="30%">Perihal Surat</th>
-                            <th>Posisi / Status Surat</th> <th>Status Pengerjaan (Staff)</th>
-                            <th>Catatan Kabag</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($monitoring_list as $m)
-                        <tr>
-                            <td class="text-center">{{ $loop->iteration }}</td>
-                            
-                            <td>
-                                <div class="fw-bold">{{ $m->penerima->name ?? '-' }}</div>
-                                <small class="text-muted">Tgl: {{ $m->created_at->format('d/m/Y') }}</small>
-                            </td>
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+                <thead class="bg-slate-800 text-white">
+                    <tr>
+                        <th class="px-4 py-3 text-center font-semibold w-10">No</th>
+                        <th class="px-4 py-3 text-left font-semibold">Staff Tujuan</th>
+                        <th class="px-4 py-3 text-left font-semibold w-64">Perihal Surat</th>
+                        <th class="px-4 py-3 text-center font-semibold">Posisi / Status Surat</th>
+                        <th class="px-4 py-3 text-center font-semibold">Status Pengerjaan</th>
+                        <th class="px-4 py-3 text-left font-semibold">Catatan Kabag</th>
+                        <th class="px-4 py-3 text-center font-semibold w-24">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($monitoring_list as $m)
+                    <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-4 py-3 text-center text-slate-400">{{ $loop->iteration }}</td>
 
-                            <td>
-                                {{ $m->surat->perihal ?? '-' }}
-                                <div class="small text-muted mt-1 fst-italic">
-                                    "{{ Str::limit($m->catatan, 50) }}"
-                                </div>
-                            </td>
+                        <td class="px-4 py-3">
+                            <div class="font-semibold text-slate-800">{{ $m->penerima->name ?? '-' }}</div>
+                            <div class="text-xs text-slate-400 mt-0.5">{{ $m->created_at->format('d/m/Y') }}</div>
+                        </td>
 
-                            <td class="text-center">
-                                @if($m->surat)
-                                    @php
-                                        $st = $m->surat->status_terakhir;
-                                        $warna = 'secondary';
-                                        if($st == 'Baru') $warna = 'primary';
-                                        elseif($st == 'Didisposisikan') $warna = 'info text-dark';
-                                        elseif($st == 'Dikerjakan Staff') $warna = 'warning text-dark';
-                                        elseif($st == 'Disposisi Selesai') $warna = 'success';
-                                        elseif($st == 'Naik ke Bupati') $warna = 'dark';
-                                        elseif($st == 'Turun dari Bupati') $warna = 'success';
-                                    @endphp
-                                    <span class="badge bg-{{ $warna }} border border-{{ $warna }}">
-                                        {{ $st }}
-                                    </span>
-                                @else
-                                    <span class="text-danger small">Data Surat Terhapus</span>
-                                @endif
-                            </td>
+                        <td class="px-4 py-3">
+                            <div class="text-slate-700">{{ $m->surat->perihal ?? '-' }}</div>
+                            @if($m->catatan)
+                            <div class="text-xs text-blue-600 italic mt-0.5">"{{ Str::limit($m->catatan, 50) }}"</div>
+                            @endif
+                        </td>
 
-                            <td class="text-center">
-                                @if($m->status_disposisi == 'Selesai')
-                                    <span class="badge bg-success"><i class="fas fa-check-circle"></i> Selesai (ACC)</span>
-                                @elseif($m->status_disposisi == 'Revisi')
-                                    <span class="badge bg-danger"><i class="fas fa-exclamation-circle"></i> Perlu Revisi</span>
-                                @elseif($m->file_laporan)
-                                    <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Menunggu ACC</span>
-                                @else
-                                    <span class="badge bg-secondary">Proses Staff</span>
-                                @endif
-                            </td>
+                        <td class="px-4 py-3 text-center">
+                            @if($m->surat)
+                            @php
+                                $st = $m->surat->status_terakhir ?? $m->surat->status ?? '-';
+                                $stColor = match(true) {
+                                    $st == 'Baru' => 'bg-blue-100 text-blue-700',
+                                    $st == 'Didisposisikan' => 'bg-purple-100 text-purple-700',
+                                    str_contains($st, 'Dikerjakan') => 'bg-amber-100 text-amber-700',
+                                    str_contains($st, 'Selesai') => 'bg-green-100 text-green-700',
+                                    str_contains($st, 'Bupati') => 'bg-slate-700 text-white',
+                                    default => 'bg-slate-100 text-slate-600',
+                                };
+                            @endphp
+                            <span class="inline-block {{ $stColor }} text-xs font-semibold px-2.5 py-1 rounded-full">{{ $st }}</span>
+                            @else
+                            <span class="text-red-500 text-xs">Data Surat Terhapus</span>
+                            @endif
+                        </td>
 
-                            <td>
-                                @if($m->catatan_kabag)
-                                    <div class="alert alert-light border p-1 mb-0 small text-center">
-                                        {{ $m->catatan_kabag }}
-                                    </div>
-                                @else
-                                    <div class="text-center">-</div>
-                                @endif
-                            </td>
+                        <td class="px-4 py-3 text-center">
+                            @if(($m->status_disposisi ?? null) == 'Selesai')
+                            <span class="inline-flex items-center gap-1 bg-green-100 text-green-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                <i class="fas fa-check-circle"></i> Selesai (ACC)
+                            </span>
+                            @elseif(($m->status_disposisi ?? null) == 'Revisi')
+                            <span class="inline-flex items-center gap-1 bg-red-100 text-red-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                <i class="fas fa-exclamation-circle"></i> Perlu Revisi
+                            </span>
+                            @elseif(!empty($m->file_laporan))
+                            <span class="inline-flex items-center gap-1 bg-amber-100 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                <i class="fas fa-clock"></i> Menunggu ACC
+                            </span>
+                            @else
+                            <span class="inline-flex items-center gap-1 bg-slate-100 text-slate-600 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                <i class="fas fa-spinner"></i> Proses Staff
+                            </span>
+                            @endif
+                        </td>
 
-                            <td class="text-center">
-                                <a href="{{ route('surat-masuk.show', $m->surat_masuk_id) }}" class="btn btn-sm btn-outline-primary" title="Lihat Detail">
-                                    <i class="fas fa-eye"></i> Detail
-                                </a>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                        <td class="px-4 py-3 text-slate-600 text-sm">
+                            @if(!empty($m->catatan_kabag))
+                            <div class="bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs">{{ $m->catatan_kabag }}</div>
+                            @else
+                            <span class="text-slate-300">-</span>
+                            @endif
+                        </td>
+
+                        <td class="px-4 py-3 text-center">
+                            <a href="{{ route('surat-masuk.show', $m->surat_masuk_id) }}"
+                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-600 text-xs font-semibold rounded-lg hover:bg-blue-200 transition-colors">
+                                <i class="fas fa-eye"></i> Detail
+                            </a>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="7" class="px-4 py-12 text-center text-slate-400">
+                            <i class="fas fa-chart-line text-4xl block mb-2 opacity-20"></i>
+                            Belum ada data disposisi untuk dimonitor.
+                        </td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
