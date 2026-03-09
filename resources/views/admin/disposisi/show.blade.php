@@ -56,6 +56,15 @@
                 <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Tgl Diterima</p>
                 <p class="text-slate-600">{{ optional($disposisi->surat->tgl_diterima)->format('d-m-Y') ?? '-' }}</p>
             </div>
+            @if($disposisi->surat->validasi_oleh && $disposisi->surat->tgl_validasi)
+            <div class="col-span-2 md:col-span-5">
+                <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Info Validasi</p>
+                <div class="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 text-sm">
+                    <i class="fas fa-check-circle text-green-500"></i>
+                    <span class="text-green-700">Divalidasi oleh <strong>{{ $disposisi->surat->validasi_oleh }}</strong> pada {{ \Carbon\Carbon::parse($disposisi->surat->tgl_validasi)->isoFormat('DD MMMM YYYY, HH:mm') }} WIB</span>
+                </div>
+            </div>
+            @endif
         </div>
     </div>
 

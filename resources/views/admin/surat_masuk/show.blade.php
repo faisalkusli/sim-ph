@@ -147,6 +147,22 @@
                         <p class="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Diinput Oleh</p>
                         <p class="text-slate-700">{{ $surat->user->name ?? '-' }}</p>
                     </div>
+                    @if($surat->validasi_oleh && $surat->tgl_validasi)
+                    <div class="sm:col-span-2">
+                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-1">Info Validasi</p>
+                        @if($surat->status == 'Ditolak')
+                        <div class="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5 text-sm">
+                            <i class="fas fa-times-circle text-red-500"></i>
+                            <span class="text-red-700">Ditolak oleh <strong>{{ $surat->validasi_oleh }}</strong> pada {{ \Carbon\Carbon::parse($surat->tgl_validasi)->isoFormat('DD MMMM YYYY, HH:mm') }} WIB</span>
+                        </div>
+                        @else
+                        <div class="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5 text-sm">
+                            <i class="fas fa-check-circle text-green-500"></i>
+                            <span class="text-green-700">Divalidasi oleh <strong>{{ $surat->validasi_oleh }}</strong> pada {{ \Carbon\Carbon::parse($surat->tgl_validasi)->isoFormat('DD MMMM YYYY, HH:mm') }} WIB</span>
+                        </div>
+                        @endif
+                    </div>
+                    @endif
                 </div>
 
                 {{-- File Dokumen --}}
