@@ -103,6 +103,7 @@ class SuratMasukController extends Controller
                 'no_agenda' => $validated['no_agenda'],
                 'no_surat_pengirim' => $validated['no_surat_pengirim'],
                 'asal_instansi' => $validated['asal_instansi'],
+                'jenis_surat' => $validated['jenis_surat'] ?? null,
                 'perihal' => $validated['perihal'],
                 'tgl_surat' => $validated['tgl_surat'],
                 'tgl_diterima' => $validated['tgl_diterima'],
@@ -110,9 +111,7 @@ class SuratMasukController extends Controller
                 'file_pengantar_path' => $pathPengantar,
                 'file_pernyataan_path' => $pathPernyataan,
                 'file_lampiran_path' => $pathLampiran,
-                'tgl_status' => now(),
-                'user_id' => Auth::id(),
-                'catatan' => 'Surat masuk diinput ke sistem.'
+                'status' => SuratMasukStatus::MenungguValidasi->value,
             ]);
         });
         
