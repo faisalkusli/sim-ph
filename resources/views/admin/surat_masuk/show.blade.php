@@ -548,6 +548,11 @@
                     </select>
                 </div>
                 <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1.5">Jenis Surat <span class="text-red-500">*</span></label>
+                    <input type="text" name="jenis_surat" value="{{ $surat->jenis_surat ?? 'Surat Masuk' }}" required
+                           class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
+                </div>
+                <div>
                     <label class="block text-sm font-semibold text-slate-700 mb-1.5">Instruksi <span class="text-red-500">*</span></label>
                     <textarea name="instruksi" rows="3" required placeholder="Tuliskan instruksi disposisi..."
                               class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>

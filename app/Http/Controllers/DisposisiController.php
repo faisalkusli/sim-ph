@@ -234,7 +234,7 @@ class DisposisiController extends Controller
                 'dari_user_id' => auth()->id(),
                 'tujuan_user_id' => $validated['tujuan_user_id'],
                 'sifat' => $validated['sifat'],
-                'jenis_surat' => $validated['jenis_surat'],
+                'jenis_surat' => $validated['jenis_surat'] ?? $surat->jenis_surat ?? 'Surat Masuk',
                 'instruksi' => $validated['instruksi'],
                 'status' => DisposisiStatus::Belum->value,
                 'tanggal_diterima' => null,
