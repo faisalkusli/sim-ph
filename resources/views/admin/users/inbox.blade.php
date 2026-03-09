@@ -301,79 +301,119 @@
     {{-- 2. MODAL VERIFIKASI KASUBAG (Status 2) --}}
     @if(in_array(auth()->user()->role, ['admin','kasubag','kabag']) && $d->status == 2)
     <div id="modalVerifikasi{{ $d->id }}"
-         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
          onclick="if(event.target===this)this.classList.add('hidden')">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between p-5 border-b border-amber-200 bg-amber-50 rounded-t-2xl">
-                <h3 class="font-bold text-amber-800 flex items-center gap-2">
-                    <i class="fas fa-clipboard-check"></i> Verifikasi Hasil Pekerjaan
-                </h3>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-6 py-4 border-b border-amber-200 bg-gradient-to-r from-amber-50 to-orange-50 rounded-t-2xl flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-amber-500 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-clipboard-check text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-amber-900 text-base">Verifikasi Hasil Pekerjaan</h3>
+                        <p class="text-xs text-amber-600">Periksa pekerjaan sebelum diteruskan ke Kabag</p>
+                    </div>
+                </div>
                 <button type="button" onclick="document.getElementById('modalVerifikasi{{ $d->id }}').classList.add('hidden')"
-                        class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                        class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors text-xl leading-none">&times;</button>
             </div>
-            <div class="p-5 space-y-4">
-                <div class="bg-slate-50 rounded-xl p-4 grid grid-cols-2 gap-3 text-sm">
-                    <div>
-                        <p class="text-xs text-slate-400 font-semibold uppercase mb-0.5">Dari Staff</p>
-                        <p class="font-semibold text-slate-800">{{ $d->penerima->name ?? 'Bawahan' }}</p>
+
+            {{-- Scrollable Body --}}
+            <div class="overflow-y-auto flex-1 p-6 space-y-4">
+
+                {{-- Info Cards --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user text-blue-600 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-blue-500 font-semibold uppercase">Dari Staff</p>
+                            <p class="font-bold text-blue-900 text-sm">{{ $d->penerima->name ?? 'Bawahan' }}</p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-xs text-slate-400 font-semibold uppercase mb-0.5">Waktu</p>
-                        <p class="text-slate-600">{{ $d->updated_at->format('d M Y, H:i') }}</p>
-                    </div>
-                    <div class="col-span-2">
-                        <p class="text-xs text-slate-400 font-semibold uppercase mb-0.5">Catatan Staff</p>
-                        <p class="italic text-blue-700">"{{ $d->catatan_staff ?? '-' }}"</p>
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-clock text-slate-500 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-semibold uppercase">Waktu</p>
+                            <p class="font-semibold text-slate-700 text-sm">{{ $d->updated_at->format('d M Y, H:i') }}</p>
+                        </div>
                     </div>
                 </div>
 
+                @if($d->catatan_staff)
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-3">
+                    <i class="fas fa-comment-dots text-indigo-400 text-lg flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="text-xs text-indigo-500 font-semibold uppercase mb-1">Catatan Staff</p>
+                        <p class="text-sm text-indigo-800 italic">&ldquo;{{ $d->catatan_staff }}&rdquo;</p>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Preview File --}}
                 @if($d->file_hasil)
                 @php $ext = pathinfo($d->file_hasil, PATHINFO_EXTENSION); $fileUrl = asset('storage/'.$d->file_hasil); @endphp
                 <div class="border border-slate-200 rounded-xl overflow-hidden">
-                    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
-                        <span class="text-xs font-bold text-slate-600 uppercase">Preview File ({{ $ext }})</span>
-                        <a href="{{ $fileUrl }}" target="_blank" download class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800 text-white">
+                        <span class="text-xs font-bold uppercase flex items-center gap-2">
+                            <i class="fas fa-file-alt"></i> Preview File (.{{ strtoupper($ext) }})
+                        </span>
+                        <a href="{{ $fileUrl }}" target="_blank" download
+                           class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1">
                             <i class="fas fa-download"></i> Download
                         </a>
                     </div>
                     @if(in_array(strtolower($ext), ['jpg','jpeg','png']))
-                    <img src="{{ $fileUrl }}" class="max-h-64 mx-auto block">
+                    <img src="{{ $fileUrl }}" class="max-h-72 w-full object-contain bg-slate-50">
                     @elseif(strtolower($ext) == 'pdf')
-                    <iframe src="{{ $fileUrl }}" class="w-full h-64 border-0"></iframe>
+                    <iframe src="{{ $fileUrl }}" class="w-full h-96 border-0"></iframe>
                     @elseif(in_array(strtolower($ext), ['doc','docx']))
                     <iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($fileUrl) }}"
-                            class="w-full h-80 border-0" loading="lazy"
+                            class="w-full h-96 border-0" loading="lazy"
                             title="Preview Dokumen Word"></iframe>
                     @else
-                    <div class="py-8 text-center text-slate-400 text-sm">Preview tidak tersedia</div>
+                    <div class="py-8 text-center text-slate-400 text-sm"><i class="fas fa-file text-3xl mb-2 block opacity-30"></i>Preview tidak tersedia untuk format ini.</div>
                     @endif
                 </div>
                 @else
-                <div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-3 text-sm text-center">
-                    Staff tidak melampirkan file.
+                <div class="bg-amber-50 border border-amber-200 text-amber-700 rounded-xl p-4 text-sm flex items-center gap-3">
+                    <i class="fas fa-paperclip text-amber-400 text-lg"></i>
+                    <span>Staff tidak melampirkan file pada laporan ini.</span>
                 </div>
                 @endif
 
+            </div>
+
+            {{-- Sticky Footer: Form Aksi --}}
+            <div class="flex-shrink-0 border-t border-slate-100 bg-slate-50 rounded-b-2xl px-6 py-4">
                 <form action="{{ route('disposisi.verifikasi', $d->id) }}" method="POST">
                     @csrf
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Catatan (jika perlu revisi)</label>
-                        <input type="text" name="catatan_revisi" placeholder="Tulis catatan..."
-                               class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="submit" name="status_akhir" value="Revisi"
-                                class="py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 flex items-center justify-center gap-2">
-                            <i class="fas fa-undo"></i> Minta Revisi
-                        </button>
-                        <button type="submit" name="status_akhir" value="Selesai"
-                                onclick="return confirm('ACC pekerjaan ini?')"
-                                class="py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center justify-center gap-2">
-                            <i class="fas fa-check-double"></i> ACC Selesai
-                        </button>
+                    <div class="flex items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Catatan (opsional, diisi jika minta revisi)</label>
+                            <input type="text" name="catatan_revisi" placeholder="Tulis catatan revisi..."
+                                   class="w-full border border-slate-300 bg-white rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 outline-none">
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0">
+                            <button type="submit" name="status_akhir" value="Revisi"
+                                    class="px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-xl hover:bg-red-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fas fa-undo text-xs"></i> Revisi
+                            </button>
+                            <button type="submit" name="status_akhir" value="Selesai"
+                                    onclick="return confirm('ACC dan teruskan ke Kabag?')"
+                                    class="px-4 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center gap-1.5 transition-colors">
+                                <i class="fas fa-check-double text-xs"></i> ACC
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
+
         </div>
     </div>
     @endif
@@ -382,68 +422,119 @@
     {{-- Kabag bisa verifikasi semua disposisi berstatus 3, tidak hanya yang dia kirim sendiri --}}
     @if(in_array(auth()->user()->role, ['kabag','admin']) && $d->status == 3 && $d->surat)
     <div id="modalVerifikasiKabag{{ $d->id }}"
-         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+         class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
          onclick="if(event.target===this)this.classList.add('hidden')">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl" onclick="event.stopPropagation()">
-            <div class="flex items-center justify-between p-5 border-b border-red-200 bg-red-50 rounded-t-2xl">
-                <h3 class="font-bold text-red-800 flex items-center gap-2">
-                    <i class="fas fa-shield-alt"></i> Verifikasi Akhir Kabag
-                </h3>
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl flex flex-col max-h-[90vh]" onclick="event.stopPropagation()">
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-6 py-4 border-b border-red-200 bg-gradient-to-r from-red-50 to-rose-50 rounded-t-2xl flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center">
+                        <i class="fas fa-shield-alt text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-red-900 text-base">Verifikasi Akhir Kabag</h3>
+                        <p class="text-xs text-red-500">Persetujuan final &mdash; disposisi akan ditandai Selesai</p>
+                    </div>
+                </div>
                 <button type="button" onclick="document.getElementById('modalVerifikasiKabag{{ $d->id }}').classList.add('hidden')"
-                        class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+                        class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors text-xl ">&times;</button>
             </div>
-            <div class="p-5 space-y-4">
-                <div class="bg-slate-50 rounded-xl p-4 text-sm">
-                    <p class="text-xs text-slate-400 font-semibold uppercase mb-1">Dari Kasubag</p>
-                    <p class="font-semibold text-slate-800">{{ $d->penerima->name ?? 'Kasubag' }}</p>
-                    @if($d->catatan_staff)
-                    <p class="mt-2 italic text-blue-700">"{{ $d->catatan_staff }}"</p>
-                    @endif
+
+            {{-- Scrollable Body --}}
+            <div class="overflow-y-auto flex-1 p-6 space-y-4">
+
+                {{-- Info Cards --}}
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-purple-50 border border-purple-100 rounded-xl p-3 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-user-tie text-purple-600 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-purple-500 font-semibold uppercase">Dari Kasubag / Staf</p>
+                            <p class="font-bold text-purple-900 text-sm">{{ $d->penerima->name ?? 'Kasubag' }}</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+                        <div class="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <i class="fas fa-clock text-slate-500 text-xs"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-semibold uppercase">Waktu</p>
+                            <p class="font-semibold text-slate-700 text-sm">{{ $d->updated_at->format('d M Y, H:i') }}</p>
+                        </div>
+                    </div>
                 </div>
 
+                @if($d->catatan_staff)
+                <div class="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex gap-3">
+                    <i class="fas fa-comment-dots text-indigo-400 text-lg flex-shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="text-xs text-indigo-500 font-semibold uppercase mb-1">Catatan Laporan</p>
+                        <p class="text-sm text-indigo-800 italic">&ldquo;{{ $d->catatan_staff }}&rdquo;</p>
+                    </div>
+                </div>
+                @endif
+
+                {{-- Preview File --}}
                 @if($d->file_hasil)
                 @php $ext2 = pathinfo($d->file_hasil, PATHINFO_EXTENSION); $fileUrl2 = asset('storage/'.$d->file_hasil); @endphp
                 <div class="border border-slate-200 rounded-xl overflow-hidden">
-                    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
-                        <span class="text-xs font-bold text-slate-600 uppercase">File Hasil ({{ $ext2 }})</span>
-                        <a href="{{ $fileUrl2 }}" target="_blank" download class="text-xs text-blue-600 hover:underline">
+                    <div class="flex items-center justify-between px-4 py-2.5 bg-slate-800 text-white">
+                        <span class="text-xs font-bold uppercase flex items-center gap-2">
+                            <i class="fas fa-file-alt"></i> Preview File (.{{ strtoupper($ext2) }})
+                        </span>
+                        <a href="{{ $fileUrl2 }}" target="_blank" download
+                           class="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg transition-colors flex items-center gap-1">
                             <i class="fas fa-download"></i> Download
                         </a>
                     </div>
                     @if(in_array(strtolower($ext2), ['jpg','jpeg','png']))
-                    <img src="{{ $fileUrl2 }}" class="max-h-64 mx-auto block">
+                    <img src="{{ $fileUrl2 }}" class="max-h-72 w-full object-contain bg-slate-50">
                     @elseif(strtolower($ext2) == 'pdf')
-                    <iframe src="{{ $fileUrl2 }}" class="w-full h-64 border-0"></iframe>
+                    <iframe src="{{ $fileUrl2 }}" class="w-full h-96 border-0"></iframe>
                     @elseif(in_array(strtolower($ext2), ['doc','docx']))
                     <iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($fileUrl2) }}"
-                            class="w-full h-80 border-0" loading="lazy"
+                            class="w-full h-96 border-0" loading="lazy"
                             title="Preview Dokumen Word"></iframe>
                     @else
-                    <div class="py-8 text-center text-slate-400 text-sm">Preview tidak tersedia</div>
+                    <div class="py-8 text-center text-slate-400 text-sm"><i class="fas fa-file text-3xl mb-2 block opacity-30"></i>Preview tidak tersedia untuk format ini.</div>
                     @endif
+                </div>
+                @else
+                <div class="bg-slate-50 border border-slate-200 text-slate-500 rounded-xl p-4 text-sm flex items-center gap-3">
+                    <i class="fas fa-paperclip text-slate-400 text-lg"></i>
+                    <span>Tidak ada file terlampir.</span>
                 </div>
                 @endif
 
+            </div>
+
+            {{-- Sticky Footer: Form Aksi --}}
+            <div class="flex-shrink-0 border-t border-slate-100 bg-slate-50 rounded-b-2xl px-6 py-4">
                 <form action="{{ route('disposisi.verifikasi', $d->id) }}" method="POST">
                     @csrf
-                    <div class="mb-4">
-                        <label class="block text-sm font-semibold text-slate-700 mb-1.5">Catatan Akhir Kabag</label>
-                        <textarea name="catatan_revisi" rows="3" placeholder="Tulis catatan jika perlu revisi atau ACC..."
-                                  class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"></textarea>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <button type="submit" name="status_akhir" value="Revisi"
-                                class="py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 flex items-center justify-center gap-2">
-                            <i class="fas fa-undo"></i> Minta Revisi
-                        </button>
-                        <button type="submit" name="status_akhir" value="Selesai"
-                                onclick="return confirm('ACC verifikasi akhir ini?')"
-                                class="py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center justify-center gap-2">
-                            <i class="fas fa-check-circle"></i> ACC Selesai
-                        </button>
+                    <div class="flex items-end gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-semibold text-slate-600 mb-1.5">Catatan Akhir (opsional, diisi jika minta revisi)</label>
+                            <textarea name="catatan_revisi" rows="2" placeholder="Tulis catatan jika ada yang perlu diperbaiki..."
+                                      class="w-full border border-slate-300 bg-white rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none resize-none"></textarea>
+                        </div>
+                        <div class="flex gap-2 flex-shrink-0 pb-0.5">
+                            <button type="submit" name="status_akhir" value="Revisi"
+                                    class="px-4 py-2.5 bg-red-500 text-white text-sm font-semibold rounded-xl hover:bg-red-600 flex items-center gap-1.5 transition-colors">
+                                <i class="fas fa-undo text-xs"></i> Revisi
+                            </button>
+                            <button type="submit" name="status_akhir" value="Selesai"
+                                    onclick="return confirm('ACC final — disposisi akan ditandai SELESAI. Lanjutkan?')"
+                                    class="px-4 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center gap-1.5 transition-colors">
+                                <i class="fas fa-check-circle text-xs"></i> ACC Final
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>
+
         </div>
     </div>
     @endif
