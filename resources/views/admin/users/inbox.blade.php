@@ -61,6 +61,8 @@
                             <div class="mt-1"><span class="inline-block bg-blue-100 text-blue-700 text-xs font-bold px-1.5 py-0.5 rounded-full">TUGAS</span></div>
                             @elseif($d->dari_user_id === auth()->id() && in_array($d->status, [2,3]))
                             <div class="mt-1"><span class="inline-block bg-amber-100 text-amber-700 text-xs font-bold px-1.5 py-0.5 rounded-full">VERIF</span></div>
+                            @elseif($d->dari_user_id === auth()->id() && in_array($d->status, [0,1,4]))
+                            <div class="mt-1"><span class="inline-block bg-slate-100 text-slate-500 text-xs font-bold px-1.5 py-0.5 rounded-full">PANTAU</span></div>
                             @endif
                         </td>
 

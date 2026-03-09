@@ -150,10 +150,12 @@ class DisposisiController extends Controller
                                 ->orderBy('updated_at', 'desc')
                                 ->get();
         } elseif ($userRole === 'kasubag') {
-            // Kasubag melihat disposisi yang dia kirim ke staf dan menunggu verifikasi kasubag
+            // Kasubag melihat SEMUA disposisi yang dia kirim ke staf (status 0–4),
+            // bukan hanya yang sudah selesai dikerjakan (status 2).
+            // Ini memastikan kasubag bisa memantau tugas sejak dikirim hingga selesai diverifikasi.
             $disposisi_verifikasi = Disposisi::with(['surat', 'pengirim', 'penerima'])
                                 ->where('dari_user_id', $userId)
-                                ->where('status', DisposisiStatus::MenungguVerifikasiKasubag->value)
+                                ->whereNotIn('status', [DisposisiStatus::Selesai->value])
                                 ->orderBy('updated_at', 'desc')
                                 ->get();
         } elseif (in_array($userRole, ['admin', 'super_admin'])) {
