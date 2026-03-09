@@ -157,11 +157,29 @@
             </div>
             @endif
             @if($disposisi->file_hasil)
-            <div class="flex items-center gap-3">
-                <a href="{{ asset('storage/' . $disposisi->file_hasil) }}" target="_blank"
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 text-white text-xs font-bold rounded-xl hover:bg-green-700">
-                    <i class="fas fa-download"></i> Unduh File Hasil
-                </a>
+            @php
+                $hasilExt = strtolower(pathinfo($disposisi->file_hasil, PATHINFO_EXTENSION));
+                $hasilUrl = asset('storage/' . $disposisi->file_hasil);
+            @endphp
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+                <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-200">
+                    <span class="text-xs font-bold text-slate-600 uppercase">File Hasil (.{{ $hasilExt }})</span>
+                    <a href="{{ $hasilUrl }}" target="_blank" download
+                       class="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
+                @if(in_array($hasilExt, ['jpg','jpeg','png']))
+                <img src="{{ $hasilUrl }}" class="max-h-64 mx-auto block">
+                @elseif($hasilExt === 'pdf')
+                <iframe src="{{ $hasilUrl }}" class="w-full h-72 border-0"></iframe>
+                @elseif(in_array($hasilExt, ['doc','docx']))
+                <iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($hasilUrl) }}"
+                        class="w-full h-96 border-0" loading="lazy"
+                        title="Preview Dokumen Word"></iframe>
+                @else
+                <div class="py-6 text-center text-slate-400 text-sm">Preview tidak tersedia untuk format ini.</div>
+                @endif
             </div>
             @endif
         </div>

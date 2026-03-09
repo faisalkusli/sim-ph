@@ -340,6 +340,10 @@
                     <img src="{{ $fileUrl }}" class="max-h-64 mx-auto block">
                     @elseif(strtolower($ext) == 'pdf')
                     <iframe src="{{ $fileUrl }}" class="w-full h-64 border-0"></iframe>
+                    @elseif(in_array(strtolower($ext), ['doc','docx']))
+                    <iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($fileUrl) }}"
+                            class="w-full h-80 border-0" loading="lazy"
+                            title="Preview Dokumen Word"></iframe>
                     @else
                     <div class="py-8 text-center text-slate-400 text-sm">Preview tidak tersedia</div>
                     @endif
@@ -410,6 +414,10 @@
                     <img src="{{ $fileUrl2 }}" class="max-h-64 mx-auto block">
                     @elseif(strtolower($ext2) == 'pdf')
                     <iframe src="{{ $fileUrl2 }}" class="w-full h-64 border-0"></iframe>
+                    @elseif(in_array(strtolower($ext2), ['doc','docx']))
+                    <iframe src="https://view.officeapps.live.com/op/embed.aspx?src={{ urlencode($fileUrl2) }}"
+                            class="w-full h-80 border-0" loading="lazy"
+                            title="Preview Dokumen Word"></iframe>
                     @else
                     <div class="py-8 text-center text-slate-400 text-sm">Preview tidak tersedia</div>
                     @endif
