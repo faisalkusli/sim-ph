@@ -408,11 +408,31 @@
                         <label class="block text-sm font-semibold text-slate-700 mb-1.5">Diteruskan Kepada <span class="text-red-500">*</span></label>
                         <select name="tujuan_user_id" required
                                 class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
-                            <option value="">-- Pilih Bawahan --</option>
+                            <option value="">-- Pilih Tujuan --</option>
                             @if(isset($listTujuan) && $listTujuan->count())
-                            @foreach($listTujuan as $u)
-                            <option value="{{ $u->id }}">{{ $u->name }}</option>
-                            @endforeach
+                                @php
+                                    $kasubagList = $listTujuan->whereIn('role', ['kasubag']);
+                                    $stafList    = $listTujuan->whereIn('role', ['staf','staff']);
+                                @endphp
+                                @if($kasubagList->count())
+                                <optgroup label="── Kasubag ──">
+                                    @foreach($kasubagList as $u)
+                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                                @endif
+                                @if($stafList->count())
+                                <optgroup label="── Staf ──">
+                                    @foreach($stafList as $u)
+                                    <option value="{{ $u->id }}">{{ $u->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                                @endif
+                                @if(!$kasubagList->count() && !$stafList->count())
+                                @foreach($listTujuan as $u)
+                                <option value="{{ $u->id }}">{{ $u->name }} ({{ ucfirst($u->role) }})</option>
+                                @endforeach
+                                @endif
                             @else
                             <option value="" disabled>Tidak ada bawahan tersedia</option>
                             @endif

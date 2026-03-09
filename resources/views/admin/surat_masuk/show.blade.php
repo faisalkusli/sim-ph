@@ -532,9 +532,32 @@
                     <select name="tujuan_user_id" required
                             class="w-full border border-slate-300 rounded-xl text-sm px-3 py-2.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none">
                         <option value="">-- Pilih Tujuan --</option>
-                        @foreach($listTujuan as $user)
-                        <option value="{{ $user->id }}">{{ $user->name }} ({{ ucfirst($user->role) }})</option>
-                        @endforeach
+                        @php
+                            $kasubagOpts = $listTujuan->whereIn('role', ['kasubag']);
+                            $stafOpts    = $listTujuan->whereIn('role', ['staf','staff']);
+                            $otherOpts   = $listTujuan->whereNotIn('role', ['kasubag','staf','staff']);
+                        @endphp
+                        @if($kasubagOpts->count())
+                        <optgroup label="── Kasubag ──">
+                            @foreach($kasubagOpts as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @endforeach
+                        </optgroup>
+                        @endif
+                        @if($stafOpts->count())
+                        <optgroup label="── Staf ──">
+                            @foreach($stafOpts as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }}</option>
+                            @endforeach
+                        </optgroup>
+                        @endif
+                        @if($otherOpts->count())
+                        <optgroup label="── Lainnya ──">
+                            @foreach($otherOpts as $user)
+                            <option value="{{ $user->id }}">{{ $user->name }} ({{ ucfirst($user->role) }})</option>
+                            @endforeach
+                        </optgroup>
+                        @endif
                     </select>
                 </div>
                 <div>
