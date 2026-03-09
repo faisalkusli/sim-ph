@@ -144,9 +144,16 @@ class DisposisiController extends Controller
         $disposisi_verifikasi = collect();
         if ($userRole === 'kabag') {
             // Kabag melihat semua disposisi yang menunggu verifikasi kabag (status 3),
-            // termasuk dari kasubag yang meneruskan tugas staf
+            // termasuk dari kasubag yang meneruskan tugas staf.
+            // Tambahan: status 2 yang dari kabag langsung ke staf (safety net data lama)
             $disposisi_verifikasi = Disposisi::with(['surat', 'pengirim', 'penerima'])
-                                ->where('status', DisposisiStatus::MenungguVerifikasiKabag->value)
+                                ->where(function($q) use ($userId) {
+                                    $q->where('status', DisposisiStatus::MenungguVerifikasiKabag->value)
+                                      ->orWhere(function($q2) use ($userId) {
+                                          $q2->where('status', DisposisiStatus::MenungguVerifikasiKasubag->value)
+                                             ->where('dari_user_id', $userId);
+                                      });
+                                })
                                 ->orderBy('updated_at', 'desc')
                                 ->get();
         } elseif ($userRole === 'kasubag') {
@@ -371,8 +378,16 @@ class DisposisiController extends Controller
             return back()->with('error', 'Disposisi tidak dalam status sedang diproses.');
         }
 
+        // Tentukan status berikutnya berdasarkan siapa yang mengirim disposisi:
+        // - Jika kabag → staf langsung: skip verifikasi kasubag, langsung minta verifikasi kabag (status 3)
+        // - Jika kasubag → staf: verifikasi kasubag dulu (status 2)
+        $pengirim = User::find($disposisi->dari_user_id);
+        $statusBerikutnya = ($pengirim && $pengirim->role === 'kabag')
+            ? DisposisiStatus::MenungguVerifikasiKabag->value
+            : DisposisiStatus::MenungguVerifikasiKasubag->value;
+
         $dataUpdate = [
-            'status' => DisposisiStatus::MenungguVerifikasiKasubag->value,
+            'status' => $statusBerikutnya,
             'catatan_staff' => $validated['catatan_staff'],
         ];
 
@@ -389,7 +404,9 @@ class DisposisiController extends Controller
 
         $disposisi->update($dataUpdate);
 
-        return back()->with('success', 'Laporan pekerjaan berhasil dikirim ke atasan!');
+        $pesanKe = ($statusBerikutnya === DisposisiStatus::MenungguVerifikasiKabag->value)
+            ? 'Kabag' : 'Kasubag';
+        return back()->with('success', "Laporan pekerjaan berhasil dikirim ke {$pesanKe} untuk diverifikasi!");
     }
 
     /**
@@ -421,7 +438,12 @@ class DisposisiController extends Controller
         }
         
         if ($userRole === 'kabag' && $currentStatus !== DisposisiStatus::MenungguVerifikasiKabag->value) {
-            return back()->with('error', 'Kabag hanya bisa verifikasi status "Menunggu Verifikasi Kabag".');
+            // Pengecualian: kabag boleh verifikasi status 2 jika DIA yang mengirim disposisi langsung ke staf
+            $isDirectKabagToStaf = ($currentStatus === DisposisiStatus::MenungguVerifikasiKasubag->value
+                && $disposisi->dari_user_id === auth()->id());
+            if (!$isDirectKabagToStaf) {
+                return back()->with('error', 'Kabag hanya bisa verifikasi status "Menunggu Verifikasi Kabag".');
+            }
         }
         
         if ($userRole === 'admin') {
@@ -449,6 +471,8 @@ class DisposisiController extends Controller
                 
             } else {
                 // ===== CASE 2: APPROVE =====
+                $kabagDirectVerif = ($userRole === 'kabag' && $currentStatus === DisposisiStatus::MenungguVerifikasiKasubag->value);
+                
                 if ($userRole === 'kasubag' || ($userRole === 'admin' && $currentStatus === DisposisiStatus::MenungguVerifikasiKasubag->value)) {
                     // Kasubag approved → waiting for Kabag
                     $disposisi->update([
@@ -464,7 +488,7 @@ class DisposisiController extends Controller
                     ]);
 
                 } else if ($userRole === 'kabag' || ($userRole === 'admin' && $currentStatus === DisposisiStatus::MenungguVerifikasiKabag->value)) {
-                    // Kabag approved → Final approval
+                    // Kabag approved → Final approval (termasuk jika kabag verif langsung dari status 2)
                     $disposisi->update([
                         'status' => DisposisiStatus::Selesai->value,
                         'tanggal_selesai' => now(),
@@ -476,12 +500,15 @@ class DisposisiController extends Controller
                         'status' => SuratMasukStatus::Selesai->value
                     ]);
 
+                    $logLabel = $kabagDirectVerif
+                        ? auth()->user()->name . ' (Kabag) menyetujui langsung - Disposisi Selesai'
+                        : auth()->user()->name . ' (Kabag) menyetujui - Disposisi Selesai. Siap naik ke Bupati';
                     TrackingSurat::create([
                         'surat_masuk_id' => $disposisi->surat_masuk_id,
                         'status_log' => 'Verifikasi Kabag Disetujui',
                         'tgl_status' => now(),
                         'user_id' => auth()->id(),
-                        'catatan' => auth()->user()->name . ' (Kabag) menyetujui - Disposisi Selesai. Siap naik ke Bupati'
+                        'catatan' => $logLabel,
                     ]);
                 }
             }
@@ -492,6 +519,8 @@ class DisposisiController extends Controller
         } else {
             if ($userRole === 'kasubag' || ($userRole === 'admin' && $currentStatus === DisposisiStatus::MenungguVerifikasiKasubag->value)) {
                 $message = 'Verifikasi Kasubag selesai! Menunggu verifikasi Kabag.';
+            } elseif ($userRole === 'kabag' && $currentStatus === DisposisiStatus::MenungguVerifikasiKasubag->value) {
+                $message = 'Verifikasi Kabag selesai! Disposisi SELESAI (langsung dari Kabag).';
             } else {
                 $message = 'Verifikasi Kabag selesai! Disposisi SELESAI - Siap naik ke Bupati.';
             }

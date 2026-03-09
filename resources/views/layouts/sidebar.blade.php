@@ -8,9 +8,18 @@
         ->count();
 
     // Kabag juga mendapat notifikasi untuk disposisi menunggu verifikasinya (status 3)
+    // + status 2 jika kabag mengirim langsung ke staf (data lama)
     $verifikasiPending = 0;
     if ($role === 'kabag') {
-        $verifikasiPending = \App\Models\Disposisi::where('status', 3)->count();
+        $verifikasiPending = \App\Models\Disposisi::where(function($q) {
+            // Semua status 3 (dari kasubag maupun langsung dari kabag lewat staf)
+            $q->where('status', 3)
+              // + status 2 yang langsung kabag kirim ke staf (seharusnya lewat fix selesai() sudah jadi 3, tapi buat safety)
+              ->orWhere(function($q2) {
+                  $q2->where('status', 2)
+                     ->where('dari_user_id', auth()->id());
+              });
+        })->count();
     } elseif ($role === 'kasubag') {
         $verifikasiPending = \App\Models\Disposisi::where('dari_user_id', auth()->id())
             ->where('status', 2)
