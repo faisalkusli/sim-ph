@@ -2,6 +2,24 @@
     $role = auth()->user()->role;
     $currentPath = request()->path();
 
+    // Hitung notifikasi inbox: disposisi baru (belum dibaca) yang ditugaskan ke saya
+    $inboxUnread = \App\Models\Disposisi::where('tujuan_user_id', auth()->id())
+        ->where('status', 0)
+        ->count();
+
+    // Kabag juga mendapat notifikasi untuk disposisi menunggu verifikasinya (status 3)
+    $verifikasiPending = 0;
+    if ($role === 'kabag') {
+        $verifikasiPending = \App\Models\Disposisi::where('status', 3)->count();
+    } elseif ($role === 'kasubag') {
+        $verifikasiPending = \App\Models\Disposisi::where('dari_user_id', auth()->id())
+            ->where('status', 2)
+            ->count();
+    } elseif (in_array($role, ['admin', 'super_admin'])) {
+        $verifikasiPending = \App\Models\Disposisi::whereIn('status', [2, 3])->count();
+    }
+    $inboxBadgeTotal = $inboxUnread + $verifikasiPending;
+
     function navLink($href, $icon, $label, $active) {
         $base = 'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group w-full mb-1 ';
         $cls  = $active
@@ -77,7 +95,13 @@
     {!! navLink(route('disposisi.monitoring'), 'bi bi-diagram-3-fill', 'Disposisi',
         request()->is('disposisi*')) !!}
 
-    {!! navLink(route('inbox'), 'bi bi-inbox-fill', 'Inbox',
+    @php
+        $inboxLabel = 'Inbox';
+        if ($inboxBadgeTotal > 0) {
+            $inboxLabel .= ' <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full leading-none">' . $inboxBadgeTotal . '</span>';
+        }
+    @endphp
+    {!! navLink(route('inbox'), 'bi bi-inbox-fill', $inboxLabel,
         request()->is('inbox*')) !!}
 
 
@@ -97,6 +121,15 @@
 
     {!! navLink(route('disposisi.monitoring'), 'bi bi-diagram-3-fill', 'Disposisi',
         request()->is('disposisi*')) !!}
+
+    @php
+        $inboxLabelStaf = 'Inbox';
+        if ($inboxBadgeTotal > 0) {
+            $inboxLabelStaf .= ' <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full leading-none">' . $inboxBadgeTotal . '</span>';
+        }
+    @endphp
+    {!! navLink(route('inbox'), 'bi bi-inbox-fill', $inboxLabelStaf,
+        request()->is('inbox*')) !!}
 
     {!! navLink(route('inbox'), 'bi bi-inbox-fill', 'Inbox',
         request()->is('inbox*')) !!}
@@ -133,9 +166,13 @@
     {!! navLink(route('disposisi.monitoring'), 'bi bi-diagram-3-fill', 'Disposisi',
         request()->is('disposisi*')) !!}
 
-    {!! navLink(route('inbox'), 'bi bi-inbox-fill', 'Inbox', request()->is('inbox*')) !!}
-
-    <p class="text-slate-500 text-xs font-bold uppercase tracking-widest px-3 mt-4 mb-2">Administrasi</p>
+    @php
+        $inboxLabelAdmin = 'Inbox';
+        if ($inboxBadgeTotal > 0) {
+            $inboxLabelAdmin .= ' <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1 text-xs font-bold text-white bg-red-500 rounded-full leading-none">' . $inboxBadgeTotal . '</span>';
+        }
+    @endphp
+    {!! navLink(route('inbox'), 'bi bi-inbox-fill', $inboxLabelAdmin, request()->is('inbox*')) !!}
 
     @php
         $adminMenuActive = request()->is('users*') || request()->is('laporan*') || request()->is('system/backup*');

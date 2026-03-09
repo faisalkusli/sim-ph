@@ -87,9 +87,12 @@ class DisposisiController extends Controller
 
         // Tentukan siapa yang bisa dituju untuk forward
         if ($userLogin->role == 'kabag') {
-            $listTujuan = User::where('role', 'kasubag')->get();
+            // Kabag dapat disposisi ke kasubag MAUPUN langsung ke seluruh staf
+            $listTujuan = User::whereIn('role', ['kasubag', 'staf', 'staff'])->get();
         } elseif ($userLogin->role == 'kasubag') {
-            $listTujuan = User::where('role', 'staf')->get();
+            $listTujuan = User::whereIn('role', ['staf', 'staff'])->get();
+        } elseif (in_array($userLogin->role, ['admin', 'super_admin'])) {
+            $listTujuan = User::where('id', '!=', auth()->id())->get();
         }
 
         return view('admin.disposisi.show', compact('disposisi', 'listTujuan'));
@@ -111,27 +114,50 @@ class DisposisiController extends Controller
                             ->get();
         
         // ===== BAGIAN 2: DISPOSISI UNTUK DIVERIFIKASI =====
-        // Disposisi yang SAYA kirim dan perlu verifikasi (dari_user_id = me dengan status 2 atau 3)
+        // Logika verifikasi berbeda per role:
+        // - Kabag: semua disposisi berstatus 3 (MenungguVerifikasiKabag), sebab kabag adalah verifikator akhir
+        // - Kasubag: disposisi yang SAYA kirim berstatus 2 (saya yang bertanggung jawab verifikasi level pertama)
+        // - Admin: semua disposisi berstatus 2 atau 3
         $disposisi_verifikasi = collect();
-        if (in_array($userRole, ['kasubag', 'kabag', 'admin'])) {
+        if ($userRole === 'kabag') {
+            // Kabag melihat semua disposisi yang menunggu verifikasi kabag (status 3),
+            // termasuk dari kasubag yang meneruskan tugas staf
+            $disposisi_verifikasi = Disposisi::with(['surat', 'pengirim', 'penerima'])
+                                ->where('status', DisposisiStatus::MenungguVerifikasiKabag->value)
+                                ->orderBy('updated_at', 'desc')
+                                ->get();
+        } elseif ($userRole === 'kasubag') {
+            // Kasubag melihat disposisi yang dia kirim ke staf dan menunggu verifikasi kasubag
             $disposisi_verifikasi = Disposisi::with(['surat', 'pengirim', 'penerima'])
                                 ->where('dari_user_id', $userId)
-                                ->whereIn('status', [2, 3])  // Status 2 = tunggu Kasubag, Status 3 = tunggu Kabag
+                                ->where('status', DisposisiStatus::MenungguVerifikasiKasubag->value)
+                                ->orderBy('updated_at', 'desc')
+                                ->get();
+        } elseif (in_array($userRole, ['admin', 'super_admin'])) {
+            // Admin melihat semua yang menunggu verifikasi
+            $disposisi_verifikasi = Disposisi::with(['surat', 'pengirim', 'penerima'])
+                                ->whereIn('status', [
+                                    DisposisiStatus::MenungguVerifikasiKasubag->value,
+                                    DisposisiStatus::MenungguVerifikasiKabag->value,
+                                ])
                                 ->orderBy('updated_at', 'desc')
                                 ->get();
         }
         
-        // Gabungkan kedua list
-        $disposisi_masuk = $disposisi_masuk->merge($disposisi_verifikasi)->sortByDesc('updated_at');
+        // Gabungkan kedua list, hapus duplikat (berdasarkan id), sort by updated_at
+        $disposisi_masuk = $disposisi_masuk->merge($disposisi_verifikasi)->unique('id')->sortByDesc('updated_at');
 
         // Tentukan siapa yang bisa dituju untuk forward
         $userLogin = auth()->user();
         $listTujuan = collect();
 
         if ($userLogin->role == 'kabag') {
-            $listTujuan = User::where('role', 'kasubag')->get();
+            // Kabag dapat disposisi ke kasubag MAUPUN langsung ke seluruh staf
+            $listTujuan = User::whereIn('role', ['kasubag', 'staf', 'staff'])->get();
         } elseif ($userLogin->role == 'kasubag') {
-            $listTujuan = User::where('role', 'staf')->get();
+            $listTujuan = User::whereIn('role', ['staf', 'staff'])->get();
+        } elseif (in_array($userLogin->role, ['admin', 'super_admin'])) {
+            $listTujuan = User::where('id', '!=', $userId)->get();
         }
 
         return view('admin.users.inbox', compact('disposisi_masuk', 'listTujuan'));
