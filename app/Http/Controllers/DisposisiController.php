@@ -106,6 +106,29 @@ class DisposisiController extends Controller
         $userId = Auth::id();
         $userRole = auth()->user()->role;
         
+        // ===== AUTO-MARK AS READ =====
+        // Semua disposisi berstatus "Belum Dibaca" (0) yang ditujukan ke saya
+        // langsung ditandai "Sedang Diproses" (1) saat inbox dibuka
+        DB::transaction(function() use ($userId) {
+            $unread = Disposisi::where('tujuan_user_id', $userId)
+                        ->where('status', DisposisiStatus::Belum->value)
+                        ->get();
+
+            foreach ($unread as $d) {
+                $d->update([
+                    'status'           => DisposisiStatus::Proses->value,
+                    'tanggal_diterima' => now(),
+                ]);
+                TrackingSurat::create([
+                    'surat_masuk_id' => $d->surat_masuk_id,
+                    'status_log'     => 'Disposisi Dibaca',
+                    'tgl_status'     => now(),
+                    'user_id'        => $userId,
+                    'catatan'        => ($d->penerima->name ?? 'User') . ' telah membaca disposisi',
+                ]);
+            }
+        });
+
         // ===== BAGIAN 1: DISPOSISI UNTUK DIKERJAKAN =====
         // Disposisi yang ditugaskan KEPADA saya (tujuan_user_id = me)
         $disposisi_masuk = Disposisi::with(['surat', 'pengirim', 'penerima'])
