@@ -196,10 +196,21 @@
                     class="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-xl hover:bg-blue-700 flex items-center gap-2">
                 <i class="fas fa-file-upload"></i> Laporkan Hasil Kerja
             </button>
-            @elseif($disposisi->status == 2 && in_array(auth()->user()->role, ['admin','kabag','kasubag']))
+            @elseif($disposisi->status == 2 && in_array(auth()->user()->role, ['admin','kasubag']))
+            {{-- Status 2 = verifikasi kasubag -- kabag tidak bisa akses di sini --}}
             <button onclick="document.getElementById('modalVerifikasi').classList.remove('hidden')"
                     class="px-5 py-2.5 bg-green-600 text-white text-sm font-semibold rounded-xl hover:bg-green-700 flex items-center gap-2">
-                <i class="fas fa-check-circle"></i> Verifikasi (Approve)
+                <i class="fas fa-check-circle"></i> Verifikasi Kasubag (Approve)
+            </button>
+            <button onclick="document.getElementById('modalRevisi').classList.remove('hidden')"
+                    class="px-5 py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 flex items-center gap-2">
+                <i class="fas fa-redo"></i> Minta Revisi
+            </button>
+            @elseif($disposisi->status == 3 && in_array(auth()->user()->role, ['admin','kabag']))
+            {{-- Status 3 = verifikasi kabag (final) --}}
+            <button onclick="document.getElementById('modalVerifikasi').classList.remove('hidden')"
+                    class="px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 flex items-center gap-2">
+                <i class="fas fa-shield-alt"></i> Verifikasi Kabag (Final)
             </button>
             <button onclick="document.getElementById('modalRevisi').classList.remove('hidden')"
                     class="px-5 py-2.5 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 flex items-center gap-2">
@@ -216,8 +227,18 @@
             </button>
             @elseif($disposisi->status == 5)
             <div class="bg-green-50 border border-green-200 text-green-700 rounded-xl p-3 text-sm flex items-center gap-2">
-                <i class="fas fa-check-circle text-green-500 text-lg"></i> Disposisi berhasil diselesaikan
+                <i class="fas fa-check-circle text-green-500 text-lg"></i> Disposisi berhasil diselesaikan &mdash; Siap naik ke Bupati
             </div>
+            @if(in_array(auth()->user()->role, ['admin','kabag','super_admin']) && $disposisi->surat && $disposisi->surat->status === 'Selesai')
+            <form action="{{ route('surat.naik_bupati', $disposisi->surat->id) }}" method="POST"
+                  onsubmit="return confirm('Naikan surat ini ke Bupati?')">
+                @csrf
+                <button type="submit"
+                        class="px-5 py-2.5 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 flex items-center gap-2">
+                    <i class="fas fa-arrow-up"></i> Naik ke Bupati
+                </button>
+            </form>
+            @endif
             @endif
 
             @if($disposisi->penerima && ($disposisi->penerima->id == auth()->id() || in_array(auth()->user()->role, ['admin','kabag','kasubag'])))

@@ -19,6 +19,10 @@ class TrackingSurat extends Model
         'catatan'
     ];
 
+    protected $casts = [
+        'tgl_status' => 'datetime',
+    ];
+
     // Tambahkan relationship ini
     public function surat()
     {

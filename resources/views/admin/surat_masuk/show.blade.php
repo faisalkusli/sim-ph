@@ -16,7 +16,7 @@
             </nav>
         </div>
         <div class="flex items-center gap-2 flex-wrap">
-            @if(in_array(auth()->user()->role, ['admin','kabag','super_admin']) && !in_array($surat->status, ['Naik ke Bupati','Turun dari Bupati','Ditolak']))
+            @if(in_array(auth()->user()->role, ['admin','kabag','super_admin']) && $surat->status === 'Selesai')
             <button onclick="document.getElementById('modalNaikBupati').classList.remove('hidden')"
                     class="flex items-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-xl text-sm font-semibold hover:bg-red-200 transition-colors">
                 <i class="fas fa-arrow-up"></i> Naik Bupati

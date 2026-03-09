@@ -145,7 +145,7 @@
                                 @endif
 
                                 {{-- Verifikasi Kasubag (Status 2) --}}
-                                @if(in_array(auth()->user()->role, ['kasubag','admin']) && $d->status == 2 && $d->dari_user_id === auth()->id())
+                                @if(in_array(auth()->user()->role, ['kasubag','admin']) && $d->status == 2)
                                 <button onclick="document.getElementById('modalVerifikasi{{ $d->id }}').classList.remove('hidden')"
                                         class="flex items-center gap-1 px-2.5 py-1.5 bg-amber-500 text-white rounded-lg text-xs font-semibold hover:bg-amber-600 transition-colors">
                                     <i class="fas fa-clipboard-check text-xs"></i> Verif
@@ -153,9 +153,8 @@
                                 @endif
 
                                 {{-- Verifikasi Kabag (Status 3) --}}
-                                {{-- Kabag bisa verifikasi semua disposisi berstatus 3 (multi-hop: kasubag→staf) --}}
-                                {{-- Juga bisa verif status 2 jika kabag yang mengirim langsung ke staf --}}
-                                @if(in_array(auth()->user()->role, ['kabag','admin']) && ($d->status == 3 || ($d->status == 2 && $d->dari_user_id === auth()->id())))
+                                {{-- Kabag bisa verifikasi semua disposisi berstatus 3 --}}
+                                @if(in_array(auth()->user()->role, ['kabag','admin']) && $d->status == 3)
                                 <button onclick="document.getElementById('modalVerifikasiKabag{{ $d->id }}').classList.remove('hidden')"
                                         class="flex items-center gap-1 px-2.5 py-1.5 bg-red-600 text-white rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors">
                                     <i class="fas fa-shield-alt text-xs"></i> Verif

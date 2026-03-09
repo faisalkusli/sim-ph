@@ -7,23 +7,14 @@
         ->where('status', 0)
         ->count();
 
-    // Kabag juga mendapat notifikasi untuk disposisi menunggu verifikasinya (status 3)
-    // + status 2 jika kabag mengirim langsung ke staf (data lama)
+    // Badge verifikasi pending per role
     $verifikasiPending = 0;
     if ($role === 'kabag') {
-        $verifikasiPending = \App\Models\Disposisi::where(function($q) {
-            // Semua status 3 (dari kasubag maupun langsung dari kabag lewat staf)
-            $q->where('status', 3)
-              // + status 2 yang langsung kabag kirim ke staf (seharusnya lewat fix selesai() sudah jadi 3, tapi buat safety)
-              ->orWhere(function($q2) {
-                  $q2->where('status', 2)
-                     ->where('dari_user_id', auth()->id());
-              });
-        })->count();
+        // Kabag hanya verifikasi status 3
+        $verifikasiPending = \App\Models\Disposisi::where('status', 3)->count();
     } elseif ($role === 'kasubag') {
-        $verifikasiPending = \App\Models\Disposisi::where('dari_user_id', auth()->id())
-            ->where('status', 2)
-            ->count();
+        // Kasubag verifikasi SEMUA status 2 (termasuk dari kabag langsung ke staf)
+        $verifikasiPending = \App\Models\Disposisi::where('status', 2)->count();
     } elseif (in_array($role, ['admin', 'super_admin'])) {
         $verifikasiPending = \App\Models\Disposisi::whereIn('status', [2, 3])->count();
     }
