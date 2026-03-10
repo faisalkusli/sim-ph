@@ -145,6 +145,14 @@
                     <i class="bi bi-info-circle-fill mt-0.5 flex-shrink-0"></i>
                     <span>Pastikan format Excel sesuai template sistem.</span>
                 </div>
+                <div class="bg-slate-50 text-slate-700 rounded-lg p-3 text-xs mt-2">
+                    <b>Contoh format CSV/Excel:</b><br>
+                    <pre style="white-space:pre-wrap;word-break:break-all">
+no_agenda,no_surat_pengirim,asal_instansi,jenis_surat,perihal,tgl_surat,tgl_diterima,status,alasan_tolak,file_scan_path,file_pengantar_path,file_pernyataan_path,file_lampiran_path,file_draft_path,catatan_verifikasi,validasi_oleh,tgl_validasi,catatan_revisi,catatan_staff,no_npknd,tgl_naik_bupati,tgl_turun_bupati
+AGD-001,SK-123,Instansi A,Surat Dinas,Permohonan informasi,2026-03-01,2026-03-02,Menunggu Validasi,,scan.pdf,,,,draft.pdf,,,,,,,,,
+                    </pre>
+                    <span class="text-slate-500">Header wajib sesuai urutan di atas.</span>
+                </div>
                 <label class="block text-sm font-semibold text-slate-700">Pilih File Excel (.xlsx / .xls)</label>
                 <input type="file" name="file" required accept=".xlsx,.xls"
                        class="block w-full text-sm text-slate-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer">

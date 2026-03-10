@@ -33,12 +33,28 @@ class SuratMasukExport implements FromQuery, WithHeadings, WithMapping
     public function headings(): array
     {
         return [
-            'No Agenda',
-            'Pengirim / Instansi',
-            'No Surat',
-            'Tanggal Surat',
-            'Tanggal Diterima',
-            'Perihal',
+            'no_agenda',
+            'no_surat_pengirim',
+            'asal_instansi',
+            'jenis_surat',
+            'perihal',
+            'tgl_surat',
+            'tgl_diterima',
+            'status',
+            'alasan_tolak',
+            'file_scan_path',
+            'file_pengantar_path',
+            'file_pernyataan_path',
+            'file_lampiran_path',
+            'file_draft_path',
+            'catatan_verifikasi',
+            'validasi_oleh',
+            'tgl_validasi',
+            'catatan_revisi',
+            'catatan_staff',
+            'no_npknd',
+            'tgl_naik_bupati',
+            'tgl_turun_bupati',
         ];
     }
 
@@ -46,11 +62,27 @@ class SuratMasukExport implements FromQuery, WithHeadings, WithMapping
     {
         return [
             $surat->no_agenda,
-            $surat->asal_instansi,
             $surat->no_surat_pengirim,
+            $surat->asal_instansi,
+            $surat->jenis_surat,
+            $surat->perihal,
             $surat->tgl_surat,
             $surat->tgl_diterima,
-            $surat->perihal,
+            $surat->status,
+            $surat->alasan_tolak,
+            $surat->file_scan_path,
+            $surat->file_pengantar_path,
+            $surat->file_pernyataan_path,
+            $surat->file_lampiran_path,
+            $surat->file_draft_path,
+            $surat->catatan_verifikasi,
+            $surat->validasi_oleh,
+            $surat->tgl_validasi,
+            $surat->catatan_revisi,
+            $surat->catatan_staff,
+            $surat->no_npknd,
+            $surat->tgl_naik_bupati,
+            $surat->tgl_turun_bupati,
         ];
     }
 }
