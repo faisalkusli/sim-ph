@@ -1,0 +1,41 @@
+[90m= [39m[34;4mIlluminate\Database\Eloquent\Collection[39;24m {#6038
+    [34mall[39m: [
+      [34;4mApp\Models\User[39;24m {#6040
+        [34mid[39m: [35m1[39m,
+        [34mname[39m: "[32mAdministrator Hukum[39m",
+        [34memail[39m: "[32mhukum@malangkab.go.id[39m",
+        [34mrole[39m: "[32madmin[39m",
+      },
+      [34;4mApp\Models\User[39;24m {#6041
+        [34mid[39m: [35m8[39m,
+        [34mname[39m: "[32mOperator Surat[39m",
+        [34memail[39m: "[32moperator@malangkab.go.id[39m",
+        [34mrole[39m: "[32moperator[39m",
+      },
+      [34;4mApp\Models\User[39;24m {#6042
+        [34mid[39m: [35m11[39m,
+        [34mname[39m: "[32mTamu[39m",
+        [34memail[39m: "[32mtamu@malangkab.go.id[39m",
+        [34mrole[39m: "[32mtamu[39m",
+      },
+      [34;4mApp\Models\User[39;24m {#6043
+        [34mid[39m: [35m12[39m,
+        [34mname[39m: "[32mKepala Bagian[39m",
+        [34memail[39m: "[32mkabag@gmail.com[39m",
+        [34mrole[39m: "[32mkabag[39m",
+      },
+      [34;4mApp\Models\User[39;24m {#6044
+        [34mid[39m: [35m13[39m,
+        [34mname[39m: "[32mKasubag[39m",
+        [34memail[39m: "[32mkasubag@gmail.com[39m",
+        [34mrole[39m: "[32mkasubag[39m",
+      },
+      [34;4mApp\Models\User[39;24m {#6045
+        [34mid[39m: [35m14[39m,
+        [34mname[39m: "[32mStaf[39m",
+        [34memail[39m: "[32mstaf@gmail.com[39m",
+        [34mrole[39m: "[32mstaf[39m",
+      },
+    ],
+  }
+

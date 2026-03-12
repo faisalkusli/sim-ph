@@ -194,7 +194,7 @@
         <div class="ttd-wrapper">
             <div class="ttd-box">
                 <p>&nbsp;</p> <p>Admin Bagian Hukum,</p>
-                <div class="ttd-space"><b>ttd.</b></div> <p class="nama-terang">( .................................... ) </p>
+                <div class="ttd-space"></div> <p class="nama-terang">( .................................... ) </p>
             </div>
 
             <div class="ttd-box">
